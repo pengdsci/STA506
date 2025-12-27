@@ -1,0 +1,548 @@
+---
+title: "An Overview of Statistical Inferences"
+author: "Cheng Peng"
+date: "West Chester University"
+output:
+  html_document: 
+    toc: yes
+    toc_depth: 4
+    toc_float: yes
+    number_sections: yes
+    toc_collapsed: yes
+    code_folding: hide
+    code_download: yes
+    smooth_scroll: yes
+    theme: lumen
+  pdf_document: 
+    toc: yes
+    toc_depth: 4
+    fig_caption: yes
+    number_sections: yes
+    fig_width: 3
+    fig_height: 3
+  word_document: 
+    toc: yes
+    toc_depth: 4
+    fig_caption: yes
+    keep_md: yes
+editor_options: 
+  chunk_output_type: inline
+---
+
+```{css, echo = FALSE}
+#TOC::before {
+  content: "Table of Contents";
+  font-weight: bold;
+  font-size: 1.2em;
+  display: block;
+  color: navy;
+  margin-bottom: 10px;
+}
+
+
+div#TOC li {     /* table of content  */
+    list-style:upper-roman;
+    background-image:none;
+    background-repeat:none;
+    background-position:0;
+}
+
+h1.title {    /* level 1 header of title  */
+  font-size: 22px;
+  font-weight: bold;
+  color: DarkRed;
+  text-align: center;
+  font-family: "Gill Sans", sans-serif;
+}
+
+h4.author { /* Header 4 - and the author and data headers use this too  */
+  font-size: 15px;
+  font-weight: bold;
+  font-family: system-ui;
+  color: navy;
+  text-align: center;
+}
+
+h4.date { /* Header 4 - and the author and data headers use this too  */
+  font-size: 18px;
+  font-weight: bold;
+  font-family: "Gill Sans", sans-serif;
+  color: DarkBlue;
+  text-align: center;
+}
+
+h1 { /* Header 1 - and the author and data headers use this too  */
+    font-size: 20px;
+    font-weight: bold;
+    font-family: "Times New Roman", Times, serif;
+    color: darkred;
+    text-align: center;
+}
+
+h2 { /* Header 2 - and the author and data headers use this too  */
+    font-size: 18px;
+    font-weight: bold;
+    font-family: "Times New Roman", Times, serif;
+    color: navy;
+    text-align: left;
+}
+
+h3 { /* Header 3 - and the author and data headers use this too  */
+    font-size: 16px;
+    font-weight: bold;
+    font-family: "Times New Roman", Times, serif;
+    color: navy;
+    text-align: left;
+}
+
+h4 { /* Header 4 - and the author and data headers use this too  */
+    font-size: 14px;
+  font-weight: bold;
+    font-family: "Times New Roman", Times, serif;
+    color: darkred;
+    text-align: left;
+}
+
+/* Add dots after numbered headers */
+.header-section-number::after {
+  content: ".";
+
+body { background-color:white; }
+
+.highlightme { background-color:yellow; }
+
+p { background-color:white; }
+
+}
+```
+
+```{r setup, include=FALSE}
+# code chunk specifies whether the R code, warnings, and output 
+# will be included in the output files.
+if (!require("knitr")) {
+   install.packages("knitr")
+   library(knitr)
+}
+if (!require("pander")) {
+   install.packages("pander")
+   library(pander)
+}
+if (!require("ggplot2")) {
+  install.packages("ggplot2")
+  library(ggplot2)
+}
+if (!require("tidyverse")) {
+  install.packages("tidyverse")
+  library(tidyverse)
+}
+
+if (!require("plotly")) {
+  install.packages("plotly")
+  library(plotly)
+}
+if (!require("fitdistrplus")) {
+  install.packages("fitdistrplus")
+  library(fitdistrplus)
+}
+## library(fitdistrplus)
+knitr::opts_chunk$set(echo = TRUE,       # include code chunk in the output file
+                      warning = FALSE,   # sometimes, you code may produce warning messages,
+                                         # you can choose to include the warning messages in
+                                         # the output file. 
+                      results = TRUE,    # you can also decide whether to include the output
+                                         # in the output file.
+                      message = FALSE,
+                      comment = NA
+                      )  
+```
+
+\
+
+# The Big Picture of Statistical Inference
+
+## Core Philosophical Foundation
+
+**Statistical Inference:** The process of using **sample data** to draw conclusions about a **population** or underlying process, while **quantifying uncertainty**.
+
+**The Fundamental Paradox:** We use what is known (data) to learn about what is unknown (parameters/truth), accepting that our conclusions are probabilistic, not certain.
+
+> **Analogy:** You taste a spoonful of soup (sample) to infer if the whole pot (population) is well-seasoned. Inference is the formal, measurable version of this act.
+
+
+
+# The Two Pillars of Inference: Estimation & Testing
+
+Think of these as answering two complementary questions about an unknown population parameter (e.g., mean μ, proportion p, effect size Δ).
+
+```{r pillars-diagram, fig.cap="", out.width="80%"}
+# Create a simple visualization of the two pillars
+pillars_data <- data.frame(
+  Pillar = c("Estimation", "Hypothesis Testing"),
+  Question = c("\n  \"What is it likely to be?\"", "\"Is there evidence for \n a specific claim?\""),
+  Key_Product = c("Confidence Interval", "p-value"),
+  Color = c("#3498db", "#e74c3c"),
+  Height = c(1, 1)
+)
+
+ggplot(pillars_data, aes(x = Pillar, y = Height, fill = Pillar)) +
+  geom_col(width = 0.8) +
+  geom_text(aes(label = Question), vjust = 2, color = "white", size = 4.5, fontface = "bold") +
+  geom_text(aes(label = Key_Product), vjust = -0.5, color = "black", size = 4) +
+  scale_fill_manual(values = c("#3498db", "#e74c3c")) +
+  theme_minimal() +
+  theme(
+    legend.position = "none",
+    axis.title = element_blank(),
+    axis.text.y = element_blank(),
+    axis.ticks = element_blank(),
+    panel.grid = element_blank(),
+    plot.title = element_text(hjust = 0.5, size = 14)
+  ) +
+  ylim(0, 1.5) +
+  labs(title = "The Two Pillars of Statistical Inference")
+```
+
+## Pillar 1: Estimation — "What is it likely to be?"
+
+* **Goal:** Determine the plausible values for a parameter.
+* **Key Product:** An **interval** of plausible values.
+* **Big-Picture Mindset:** You are mapping the **uncertainty terrain**. You're not picking one number as the "answer"; you're defining a range where the truth likely resides.
+
+
+## Pillar 2: Hypothesis Testing — "Is there evidence for a specific claim?"
+
+* **Goal:** Evaluate the strength of evidence *against* a specific, default hypothesis.
+* **Key Product:** A **probability (p-value)** measuring compatibility between data and the null hypothesis.
+* **Big-Picture Mindset:** You are acting as a **skeptical jury**. The default (null) is innocence (no effect). The data must provide strong enough evidence to convict (reject the null).
+
+
+# Major Types & Real-World Use Cases
+
+## Confidence Intervals 
+
+* **What it is:** A range of values, calculated from sample data, that is likely to contain the true population parameter a certain percentage of the time (e.g., 95%).
+
+* **Big-Picture Interpretation:** "If we were to repeat this study 100 times, about 95 of the resulting intervals would contain the true parameter. This specific interval is one of those attempts."
+
+```{r confidence-interval-demo, fig.cap="Visualizing Confidence Intervals: 95% of intervals contain the true parameter (dashed line)"}
+set.seed(123)
+# Simulate 20 confidence intervals
+n_sim <- 20
+n <- 30
+true_mean <- 100
+true_sd <- 15
+
+ci_data <- data.frame(
+  sim = 1:n_sim,
+  mean = numeric(n_sim),
+  lower = numeric(n_sim),
+  upper = numeric(n_sim),
+  contains_true = logical(n_sim)
+)
+
+for (i in 1:n_sim) {
+  sample_data <- rnorm(n, mean = true_mean, sd = true_sd)
+  test_result <- t.test(sample_data, conf.level = 0.95)
+  ci_data$mean[i] <- mean(sample_data)
+  ci_data$lower[i] <- test_result$conf.int[1]
+  ci_data$upper[i] <- test_result$conf.int[2]
+  ci_data$contains_true[i] <- (ci_data$lower[i] <= true_mean) & (ci_data$upper[i] >= true_mean)
+}
+
+ggplot(ci_data, aes(x = sim)) +
+  geom_errorbar(aes(ymin = lower, ymax = upper, color = contains_true), 
+                width = 0.3, size = 1) +
+  geom_point(aes(y = mean), size = 2) +
+  geom_hline(yintercept = true_mean, linetype = "dashed", color = "red", size = 1) +
+  scale_color_manual(values = c("TRUE" = "darkgreen", "FALSE" = "darkred"),
+                     labels = c("TRUE" = "Contains true mean", "FALSE" = "Does not contain true mean")) +
+  labs(x = "Simulation Number", y = "Value", 
+       title = "Simulation of 20 Confidence Intervals (95% level)",
+       color = "Contains True Mean?") +
+  theme_minimal() +
+  theme(legend.position = "bottom")
+```
+
+**Use-Case Examples**
+
+1.  **Market Research:** A survey finds 60% of a sample favor a new product. The **95% CI for the population proportion** is [56%, 64%]. 
+    
+    ```{r market-research-example}
+    # Example calculation for market research
+    n <- 500  # sample size
+    p_hat <- 0.60  # sample proportion
+    margin_error <- 1.96 * sqrt(p_hat * (1 - p_hat) / n)
+    ci_lower <- p_hat - margin_error
+    ci_upper <- p_hat + margin_error
+    
+    cat(sprintf("Market Research Example:\n"),
+    sprintf("Sample proportion: %.1f%%\n", p_hat * 100),
+     sprintf("95%% Confidence Interval: [%.1f%%, %.1f%%]\n", 
+                ci_lower * 100, ci_upper * 100),
+     "\nInterpretation: We are 95%% confident that the true favorability\n",
+     "among all customers is between ", round(ci_lower * 100, 1), 
+        "% and ", round(ci_upper * 100, 1), "%.", sep = "")
+    ```
+    
+*Interpretation:* We are 95% confident that the true favorability among all customers is between 56% and 64%. This gives management a realistic range for planning.
+
+2. **Medicine:** A clinical trial finds a new drug reduces systolic blood pressure by an average of 12 mmHg, with a **95% CI of [8, 16] mmHg**. 
+
+*Interpretation:* The true average effect for the population is likely between 8 and 16 mmHg. The interval provides both an estimate (12) and a measure of its precision.
+
+## Hypothesis Tests (The Decision Framework)
+
+* **What it is:** A formal procedure to decide between a **null hypothesis (H₀)**—often a statement of "no difference" or "no effect"—and an **alternative hypothesis (H₁)**.
+
+* **The Core Logic:** Assume H₀ is true. Ask: "How surprising/unlikely is our observed sample data under this assumption?" This probability is the **p-value**. A very small p-value suggests the data is incompatible with H₀.
+
+### **Use-Case Examples:**
+
+1.  **Quality Control:** A factory claims its bolts have a mean strength of 1000 psi. An auditor samples a batch.  
+    *   **H₀:** μ = 1000 psi (process is on spec).  
+    *   **H₁:** μ < 1000 psi (process is faulty).  
+    A very low p-value leads to **rejecting H₀**, triggering a machine recalibration.
+
+2.  **A/B Testing (Digital):** Does a new webpage layout (B) have a higher click-through rate than the old one (A)?  
+    *   **H₀:** p_B - p_A = 0 (no difference).  
+    *   **H₁:** p_B - p_A > 0 (B is better).  
+    A p-value < a threshold (e.g., 0.05) provides statistical evidence to **launch the new layout**.
+
+```{r hypothesis-test-flow, fig.cap="Hypothesis Testing Decision Flow", echo=FALSE}
+# Create a flowchart-like visualization
+flow_data <- data.frame(
+  step = c("1. State Hypotheses", 
+           "2. Collect Data", 
+           "3. Calculate Statistic", 
+           "4. Compute p-value",
+           "5. Make Decision"),
+  x = 1:5,
+  y = rep(1, 5)
+)
+
+ggplot(flow_data, aes(x = x, y = y)) +
+  geom_point(size = 40, color = "#2c3e50", alpha = 0.7) +
+  geom_text(aes(label = step), color = "white", size = 3) +
+  geom_segment(aes(x = x+.45, xend = x + .56, y = y, yend = y), 
+               arrow = arrow(length = unit(0.1, "cm")), 
+               color = "darkred", size = 1) +
+  xlim(0.5, 5.5) +
+  ylim(0.8, 1.2) +
+  theme_void() +
+  labs(title = "Hypothesis Testing Process Flow") +
+  theme(plot.title = element_text(hjust = 0.5, size = 14))
+```
+
+## Regression Inference (Modeling Relationships)
+
+* **What it is:** Extends estimation and testing to the parameters of a **model**, most commonly examining the relationship between variables.
+
+* **Big-Picture Mindset:** You are determining which modeled relationships are **meaningfully non-zero** after accounting for random noise.
+
+```{r regression-example, fig.cap="Regression Inference: Estimating relationships with uncertainty", fig.width=8, fig.height=4}
+# Simulate regression data with confidence bands
+set.seed(456)
+n <- 100
+x <- rnorm(n, mean = 50, sd = 15)
+true_slope <- 2.5
+true_intercept <- 10
+y <- true_intercept + true_slope * x + rnorm(n, sd = 20)
+
+# Fit linear model
+model <- lm(y ~ x)
+
+# Create prediction data
+new_x <- seq(min(x), max(x), length.out = 100)
+pred <- predict(model, newdata = data.frame(x = new_x), interval = "confidence")
+
+# Plot
+par(mfrow = c(1, 2))
+# Plot 1: Data with regression line and CI
+plot(x, y, pch = 19, col = rgb(0, 0, 1, 0.5), 
+     main = "Regression with Confidence Band",
+     xlab = "Predictor (X)", ylab = "Response (Y)")
+lines(new_x, pred[, "fit"], col = "red", lwd = 2)
+lines(new_x, pred[, "lwr"], col = "red", lty = 2)
+lines(new_x, pred[, "upr"], col = "red", lty = 2)
+
+# Plot 2: Coefficient estimate with CI
+coef_est <- coef(model)[2]
+coef_ci <- confint(model)[2,]
+
+plot(1, coef_est, xlim = c(0.5, 1.5), ylim = c(coef_ci[1] - 0.5, coef_ci[2] + 0.5),
+     pch = 19, cex = 1.5, col = "blue", xaxt = "n", xlab = "",
+     ylab = "Slope Coefficient", main = "Coefficient Estimate with 95% CI",
+     cex.main = 0.9)
+segments(1, coef_ci[1], 1, coef_ci[2], lwd = 2)
+abline(h = 0, lty = 3, col = "gray")
+text(1, coef_est + 0.3, sprintf("%.2f", coef_est), pos = 3)
+```
+
+## Use-Case Examples
+
+1.  **Economics:** A regression models house price against square footage, bedrooms, and location.  
+    *   **Inference on the slope for square footage:** A 95% CI tells us the likely dollar increase in price per extra sq. ft. A hypothesis test (p-value) tells us if we can confidently say the relationship isn't zero.
+
+```{r regression-output-example, echo=FALSE}
+# Display sample regression output
+cat("Example Regression Output:\n",
+ "=================================\n",
+ "Coefficient for Square Footage:\n",
+ "  Estimate:  $150.25 per sq. ft.\n",
+ "  95% CI:    [$142.10, $158.40]\n",
+ "  p-value:   < 0.001\n",
+ "\nInterpretation: Each additional square foot is associated with\n",
+ "an estimated $150 increase in price, and we are 95% confident\n",
+ "the true increase is between $142 and $158.\n")
+```
+
+2.  **Public Health:** A logistic regression studies risk factors for a disease. The **inference on the odds ratio for smoking** (e.g., OR = 2.5 with CI [2.1, 3.0]) allows us to state: Smoking is associated with 2.5 times the odds of disease, and we are confident the true increase is at least 2.1-fold.
+
+
+## Bayesian Inference (The Coherent Update)
+
+* **What it is:** A paradigm that **combines prior knowledge/belief** (prior distribution) with **observed data** (likelihood) to form an updated **posterior distribution** for a parameter.
+
+* **Big-Picture Mindset:** You treat parameters as probabilistic entities. You start with a prior (which can be objective or subjective), observe data, and rationally update your beliefs. The result is a full probability distribution for the parameter.
+
+```{r bayesian-update, fig.cap="Bayesian Inference: Updating Prior Belief with Data", fig.width=7, fig.height=5}
+# Simulate Bayesian updating
+set.seed(789)
+x <- seq(0, 1, length.out = 100)
+
+# Prior (moderately informed)
+prior <- dbeta(x, 8, 8)
+
+# Likelihood (data: 15 successes out of 20 trials)
+a <- 15
+b <- 5
+likelihood <- dbeta(x, a, b)
+
+# Posterior
+posterior <- dbeta(x, 8 + a, 8 + b)
+
+# Plot
+plot_df <- data.frame(
+  x = rep(x, 3),
+  density = c(prior, likelihood, posterior),
+  distribution = rep(c("Prior", "Likelihood (Data)", "Posterior"), each = length(x))
+)
+
+bayes <- ggplot(plot_df, aes(x = x, y = density, color = distribution, linetype = distribution)) +
+  geom_line(size = 1.2) +
+  scale_color_manual(values = c("Prior" = "blue", "Likelihood (Data)" = "steelblue", "Posterior" = "red")) +
+  scale_linetype_manual(values = c("Prior" = "solid", "Likelihood (Data)" = "solid", "Posterior" = "solid")) +
+  labs(x = "Parameter (e.g., success probability)", y = "Density",
+       #title = "Bayesian Updating: Prior → Likelihood → Posterior",
+       color = "Distribution", linetype = "Distribution") +
+  theme(
+  plot.margin = margin(t = 40, r = 20, b = 20, l = 20, unit = "pt"),
+   plot.title = element_text(
+    margin = margin(t = 20, b = 0)),  # Top and bottom margins
+  axis.title.x = element_text(margin = margin(t = 10)),
+  axis.title.y = element_text(margin = margin(r = 10))) +
+  theme_minimal()
+ggplotly(bayes)
+```
+
+### **Use-Case Examples:**
+
+1.  **Drug Development:** Early trials provide a **prior** on a drug's efficacy. A larger Phase 3 trial provides **data**. **Bayesian inference** combines them to produce a **posterior probability** that the drug exceeds a minimum effectiveness threshold—a direct, intuitive statement for decision-makers.
+
+
+2.  **Machine Learning/Spam Filtering:** The filter has a **prior belief** about the probability an email is spam. It updates this belief based on the **data** (presence of keywords like "free," "winner"). The **posterior probability** dictates the "spam/not spam" classification.
+
+
+
+# Synthesis & Cautions
+
+## Key Relationships and Comparisons
+
+```{r comparison-table, echo=FALSE}
+# Create a comparison table
+comparison_df <- data.frame(
+  Method = c("Confidence Intervals", "Hypothesis Tests", "Regression Inference", "Bayesian Inference"),
+  Question = c("What is the plausible range?", "Is there evidence against H₀?", "What is the relationship between variables?", "What should we believe given data and prior?"),
+  Output = c("Interval estimate", "p-value, decision", "Parameter estimates with CIs", "Posterior distribution"),
+  Interpretation = c("Long-run frequency of coverage", "Probability of data if H₀ true", "Effect size with uncertainty", "Degree of belief in parameter values")
+)
+
+knitr::kable(comparison_df, 
+             caption = "Comparison of Statistical Inference Methods",
+             col.names = c("Method", "Primary Question", "Main Output", "Interpretation"))
+```
+
+* **Estimation (CI) and Testing (p-values) are linked:** A 95% CI that **excludes** a null value (like 0) corresponds to a hypothesis test rejecting H₀ at α=0.05.
+
+```{r ci-test-relationship, echo=TRUE, eval=TRUE}
+# Demonstrate relationship between CI and hypothesis test
+
+
+# Simulate data where CI excludes 0
+set.seed(321)
+sample_data <- rnorm(50, mean = 1.5, sd = 2)
+
+# T-test
+test_result <- t.test(sample_data, mu = 0)
+ci <- test_result$conf.int
+
+cat("  Demonstration: Relationship between CI and Hypothesis Test\n",
+"==========================================================\n",
+sprintf("\n  Sample mean: %.3f\n", mean(sample_data)),
+sprintf("95%% Confidence Interval: [%.3f, %.3f]\n", ci[1], ci[2]),
+sprintf("p-value for H₀: μ = 0: %.4f\n", test_result$p.value),
+sprintf("\n we %s the null hypothesis at α=0.05.\n", 
+            ifelse(test_result$p.value < 0.05, "REJECT", "FAIL TO REJECT")))
+```
+
+
+* **Statistical vs. Practical Significance:** A test can find a tiny, **statistically significant** effect (due to huge sample size), but it may be **practically meaningless**. **Always look at the estimated effect size and its CI.**
+
+* **Inference Requires Representative Data:** Garbage in, garbage out. Biased sampling invalidates any inference, no matter how sophisticated.
+
+* **Frequentist (CI/Tests) vs. Bayesian Mindset:**  
+  * **Frequentist:** Probability = long-run frequency. Parameters are fixed, data is random.  
+  * **Bayesian:** Probability = degree of belief. Parameters are random, data is fixed.  
+  Both are powerful tools; the choice often depends on the question, field, and availability of prior information.
+
+
+#  Key Takeaway
+
+Statistical inference is the **science of disciplined learning from data in the face of uncertainty.** It moves us from simply describing our sample ("The average in our data was 10") to making **generalizable statements with quantified uncertainty** ("We are 95% confident the population average is between 9 and 11"). 
+
+Mastering the big picture allows you to choose the right tool for the question at hand, from estimating a market size, to testing a new medical treatment, to updating a recommendation algorithm.
+
+```{r final-summary, echo=FALSE, fig.cap="The Inference Process: From Data to Knowledge", fig.width=8, fig.height=4}
+# Final summary visualization
+process_steps <- data.frame(
+  step = 1:5,
+  label = c("Data\nCollection", "Model\nSpecification", "Inference\nProcedure", "Uncertainty\nQuantification", "Knowledge &\nDecision"),
+  x = 1:5,
+  y = c(0, 1, 0, 1, 0)
+)
+
+ggplot(process_steps, aes(x = x, y = y)) +
+  geom_path(color = "gray", size = 1) +
+  geom_point(size = 30, color = "#2c3e50", alpha = 0.8) +
+  geom_text(aes(label = label), color = "white", size = 3) +
+  geom_text(x = 3, y = 1.5, label = "The Statistical Inference Process", 
+            size = 5, fontface = "bold") +
+  xlim(0.5, 5.5) +
+  ylim(-0.5, 1.8) +
+  theme_void() +
+  theme(plot.margin = unit(c(1, 1, 1, 1), "cm"))
+```
+
+
+# Further Resources
+
+* **R Packages for Inference:**
+  - Basic: `stats` (base R), `infer` (tidyverse approach)
+  - Bayesian: `rstan`, `brms`, `rstanarm`
+  - Specialized: `survival`, `lme4`, `mgcv`
+
+* **Practice with:** `infer::generate()`, `infer::calculate()` for simulation-based inference
+
+* **Next Steps:** Experimental design, power analysis, multiple testing corrections, causal inference frameworks.
+
+**Remember:** The map is not the territory. Statistical models are simplified representations of reality—powerful, but always imperfect.

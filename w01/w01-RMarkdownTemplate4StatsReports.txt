@@ -1,0 +1,133 @@
+
+If you are not familiar with YAML, CSS, and some global options of RMarkdown formating, you can using the following steps to layout your assignments.
+
+1. Open a new RMarkdown file 
+2. Choose "Document" and check HTML as the Default Output Format
+3. Delete EVERYTHING in the window to make a blank document
+4. Copy the following three blocks of code and paste them into the blank document
+5. Save it into your designate location (folder)
+6. Adjust the first three lines of YAML header: title, author, and date 
+============================ The following are three blocks of code  to be copied ===================
+
+---
+title: "An RMarkdown Template for Statistical Reports"
+author: "Your Name "
+date: "Date"
+output:
+  pdf_document: 
+    toc: yes
+    toc_depth: 4
+    fig_caption: yes
+    number_sections: yes
+  word_document: 
+    toc: yes
+    toc_depth: 4
+    fig_caption: yes
+    keep_md: yes
+  html_document: 
+    toc: yes
+    toc_depth: 4
+    toc_float: yes
+    fig_width: 6
+    fig_caption: yes
+    number_sections: yes
+    theme: readable
+editor_options: 
+  chunk_output_type: console
+---
+
+```{=html}
+
+<style type="text/css">
+
+/* Cascading Style Sheets (CSS) is a stylesheet language used to describe the presentation of a document written in HTML or XML. it is a simple mechanism for adding style (e.g., fonts, colors, spacing) to Web documents. */
+
+h1.title {  /* Title - font specifications of the report title */
+  font-size: 24px;
+  color: DarkRed;
+  text-align: center;
+  font-family: "Gill Sans", sans-serif;
+}
+h4.author { /* Header 4 - font specifications for authors  */
+  font-size: 20px;
+  font-family: system-ui;
+  color: DarkRed;
+  text-align: center;
+}
+h4.date { /* Header 4 - font specifications for the date  */
+  font-size: 18px;
+  font-family: system-ui;
+  color: DarkBlue;
+  text-align: center;
+}
+h1 { /* Header 1 - font specifications for level 1 section title  */
+    font-size: 22px;
+    font-family: "Times New Roman", Times, serif;
+    color: navy;
+    text-align: center;
+}
+h2 { /* Header 2 - font specifications for level 2 section title */
+    font-size: 20px;
+    font-family: "Times New Roman", Times, serif;
+    color: navy;
+    text-align: left;
+}
+
+h3 { /* Header 3 - font specifications of level 3 section title  */
+    font-size: 18px;
+    font-family: "Times New Roman", Times, serif;
+    color: navy;
+    text-align: left;
+}
+
+h4 { /* Header 4 - font specifications of level 4 section title  */
+    font-size: 18px;
+    font-family: "Times New Roman", Times, serif;
+    color: darkred;
+    text-align: left;
+}
+
+body { background-color:white; }
+
+.highlightme { background-color:yellow; }
+
+p { background-color:white; }
+
+</style>
+```
+```{r setup, include=FALSE}
+# Detect, install, and load packages if needed.
+if (!require("knitr")) {
+   install.packages("knitr")
+   library(knitr)
+}
+if (!require("leaflet")) {
+   install.packages("leaflet")
+   library(leaflet)
+}
+if (!require("EnvStats")) {
+   install.packages("EnvStats")
+   library(EnvStats)
+}
+if (!require("MASS")) {
+   install.packages("MASS")
+   library(MASS)
+}
+if (!require("phytools")) {
+   install.packages("phytools")
+   library(phytools)
+}
+#
+# Specifications of outputs of code in code chunks
+knitr::opts_chunk$set(echo = FALSE,  # include code chunk in the output file
+                   warning = FALSE,  # Sometimes, your code may produce a warning
+                                     # messages, you can choose to include the
+                                     # warning messages in the output file. 
+                   message = FALSE,  
+                   results = TRUE,   # you can also decide whether to include 
+                                     # the output in the output file.
+                   comment = FALSE   # Suppress hash-tags in the output results.
+                      )   
+```
+
+
