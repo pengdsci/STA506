@@ -1,0 +1,208 @@
+---
+title: "Assignment 1: Estimating CDF and PDF"
+author: "Your Name "
+date: " Due: "
+output:
+  html_document: 
+    toc: yes
+    toc_depth: 4
+    toc_float: yes
+    number_sections: no
+    toc_collapsed: yes
+    code_folding: hide
+    code_download: yes
+    smooth_scroll: yes
+    theme: lumen
+  pdf_document: 
+    toc: yes
+    toc_depth: 4
+    fig_caption: yes
+    number_sections: yes
+    fig_width: 3
+    fig_height: 3
+  word_document: 
+    toc: yes
+    toc_depth: 4
+    fig_caption: yes
+    keep_md: yes
+editor_options: 
+  chunk_output_type: inline
+---
+
+```{css, echo = FALSE}
+#TOC::before {
+  content: "Table of Contents";
+  font-weight: bold;
+  font-size: 1.2em;
+  display: block;
+  color: navy;
+  margin-bottom: 10px;
+}
+
+
+div#TOC li {     /* table of content  */
+    list-style:upper-roman;
+    background-image:none;
+    background-repeat:none;
+    background-position:0;
+}
+
+h1.title {    /* level 1 header of title  */
+  font-size: 22px;
+  font-weight: bold;
+  color: DarkRed;
+  text-align: center;
+  font-family: "Gill Sans", sans-serif;
+}
+
+h4.author { /* Header 4 - and the author and data headers use this too  */
+  font-size: 15px;
+  font-weight: bold;
+  font-family: system-ui;
+  color: navy;
+  text-align: center;
+}
+
+h4.date { /* Header 4 - and the author and data headers use this too  */
+  font-size: 18px;
+  font-weight: bold;
+  font-family: "Gill Sans", sans-serif;
+  color: DarkBlue;
+  text-align: center;
+}
+
+h1 { /* Header 1 - and the author and data headers use this too  */
+    font-size: 20px;
+    font-weight: bold;
+    font-family: "Times New Roman", Times, serif;
+    color: darkred;
+    text-align: center;
+}
+
+h2 { /* Header 2 - and the author and data headers use this too  */
+    font-size: 18px;
+    font-weight: bold;
+    font-family: "Times New Roman", Times, serif;
+    color: navy;
+    text-align: left;
+}
+
+h3 { /* Header 3 - and the author and data headers use this too  */
+    font-size: 16px;
+    font-weight: bold;
+    font-family: "Times New Roman", Times, serif;
+    color: navy;
+    text-align: left;
+}
+
+h4 { /* Header 4 - and the author and data headers use this too  */
+    font-size: 14px;
+  font-weight: bold;
+    font-family: "Times New Roman", Times, serif;
+    color: darkred;
+    text-align: left;
+}
+
+/* Add dots after numbered headers */
+.header-section-number::after {
+  content: ".";
+
+body { background-color:white; }
+
+.highlightme { background-color:yellow; }
+
+p { background-color:white; }
+
+}
+```
+
+```{r setup, include=FALSE}
+# code chunk specifies whether the R code, warnings, and output 
+# will be included in the output files.
+if (!require("knitr")) {
+   install.packages("knitr")
+   library(knitr)
+}
+if (!require("pander")) {
+   install.packages("pander")
+   library(pander)
+}
+if (!require("ggplot2")) {
+  install.packages("ggplot2")
+  library(ggplot2)
+}
+if (!require("tidyverse")) {
+  install.packages("tidyverse")
+  library(tidyverse)
+}
+
+if (!require("plotly")) {
+  install.packages("plotly")
+  library(plotly)
+}
+####
+knitr::opts_chunk$set(echo = TRUE,       # include code chunk in the output file
+                      warning = FALSE,   # sometimes, you code may produce warning messages,
+                                         # you can choose to include the warning messages in
+                                         # the output file. 
+                      results = TRUE,    # you can also decide whether to include the output
+                                         # in the output file.
+                      message = FALSE,
+                      comment = NA
+                      )  
+```
+ 
+ \
+ 
+## **Assignment Objectives** 
+
+* Develop a clear technical understanding of nonparametric cumulative distribution function (CDF) estimation and various kernel density estimators.
+
+* Translate mathematical formulas into R functions and apply them to solve related problems.
+
+* Create effective visualizations to demonstrate your understanding of key concepts in the following questions.
+
+
+
+\
+
+## **Question 1: Cumulative Distribution Function (CDF) Estimation**
+
+The following failure times (in hours) were observed for 8 electronic components:
+
+<center> 23, 45, 67, 89, 112, 156, 189, 245  </center>
+
+a) Write an R function implementing the ECDF $\hat{F}_n(t)$ according to its mathematical definition. Validate your implementation using R's ecdf() function on the given data, with comparison based on their step functions.
+
+b) A colleague claims that the probability of failure before 100 hours is 0.5 based on these data. Do you agree? Explain your reasoning using the empirical cumulative distribution function (ECDF).
+
+
+\
+
+## **Question 2: Density Function Estimation**
+
+Consider the following failure times from a mechanical system:
+
+<center> 12.3, 14.7, 15.2, 16.8, 18.1, 19.4, 20.6, 22.3, 23.9, 25.4 </center>
+
+a) Create a histogram of the data using 3 equally spaced bins. What is the estimated density in each bin? Describe the shape of the histogram's distribution.
+
+b) Write an R function that computes kernel density estimates using a Gaussian kernel with $h=2$. Validate your implementation against R's built-in density() function.
+
+$$
+\hat{f}_h(t) = \frac{1}{nh}\sum_{i=1}^n K\left( \frac{t-t_i}{h}\right), \ \ \text{ where } \ \ K(u) = \frac{1}{\sqrt{2\pi}} e^{-u^2/2}.
+$$
+
+c) Write a custom R function that computes kernel density estimates using the Epanechnikov kernel with $h=2$. Validate your implementation by comparing results with R's built-in density() function for Gaussian kernel estimation.
+
+$$
+\hat{f}_h(t) = \frac{1}{nh}\sum_{i=1}^n K\left( \frac{t-t_i}{h}\right), \ \ \text{ where } \ \ K(u) = \frac{3}{4}(1 - u^2) \ \ \text{ for } \ \ |u| \le 1.
+$$
+
+d) How does the choice of kernel (Gaussian vs. Epanechnikov) affect the density estimate? For both kernel estimators applied to this dataset, what happens when we select $h=1.5$ versus $h=2.5$?
+
+
+
+
+
+

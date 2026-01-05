@@ -1,0 +1,600 @@
+---
+title: "Sampling Distributions"
+author: "Cheng Peng"
+date: "West Chester University"
+output:
+  html_document: 
+    toc: yes
+    toc_depth: 4
+    toc_float: yes
+    number_sections: yes
+    toc_collapsed: yes
+    code_folding: hide
+    code_download: yes
+    smooth_scroll: yes
+    theme: lumen
+  pdf_document: 
+    toc: yes
+    toc_depth: 4
+    fig_caption: yes
+    number_sections: yes
+    fig_width: 3
+    fig_height: 3
+  word_document: 
+    toc: yes
+    toc_depth: 4
+    fig_caption: yes
+    keep_md: yes
+editor_options: 
+  chunk_output_type: inline
+---
+
+```{css, echo = FALSE}
+#TOC::before {
+  content: "Table of Contents";
+  font-weight: bold;
+  font-size: 1.2em;
+  display: block;
+  color: navy;
+  margin-bottom: 10px;
+}
+
+
+div#TOC li {     /* table of content  */
+    list-style:upper-roman;
+    background-image:none;
+    background-repeat:none;
+    background-position:0;
+}
+
+h1.title {    /* level 1 header of title  */
+  font-size: 22px;
+  font-weight: bold;
+  color: DarkRed;
+  text-align: center;
+  font-family: "Gill Sans", sans-serif;
+}
+
+h4.author { /* Header 4 - and the author and data headers use this too  */
+  font-size: 15px;
+  font-weight: bold;
+  font-family: system-ui;
+  color: navy;
+  text-align: center;
+}
+
+h4.date { /* Header 4 - and the author and data headers use this too  */
+  font-size: 18px;
+  font-weight: bold;
+  font-family: "Gill Sans", sans-serif;
+  color: DarkBlue;
+  text-align: center;
+}
+
+h1 { /* Header 1 - and the author and data headers use this too  */
+    font-size: 20px;
+    font-weight: bold;
+    font-family: "Times New Roman", Times, serif;
+    color: darkred;
+    text-align: center;
+}
+
+h2 { /* Header 2 - and the author and data headers use this too  */
+    font-size: 18px;
+    font-weight: bold;
+    font-family: "Times New Roman", Times, serif;
+    color: navy;
+    text-align: left;
+}
+
+h3 { /* Header 3 - and the author and data headers use this too  */
+    font-size: 16px;
+    font-weight: bold;
+    font-family: "Times New Roman", Times, serif;
+    color: navy;
+    text-align: left;
+}
+
+h4 { /* Header 4 - and the author and data headers use this too  */
+    font-size: 14px;
+  font-weight: bold;
+    font-family: "Times New Roman", Times, serif;
+    color: darkred;
+    text-align: left;
+}
+
+/* Add dots after numbered headers */
+.header-section-number::after {
+  content: ".";
+
+body { background-color:white; }
+
+.highlightme { background-color:yellow; }
+
+p { background-color:white; }
+
+}
+```
+
+```{r setup, include=FALSE}
+# code chunk specifies whether the R code, warnings, and output 
+# will be included in the output files.
+if (!require("knitr")) {
+   install.packages("knitr")
+   library(knitr)
+}
+if (!require("pander")) {
+   install.packages("pander")
+   library(pander)
+}
+if (!require("ggplot2")) {
+  install.packages("ggplot2")
+  library(ggplot2)
+}
+if (!require("tidyverse")) {
+  install.packages("tidyverse")
+  library(tidyverse)
+}
+
+if (!require("plotly")) {
+  install.packages("plotly")
+  library(plotly)
+}
+
+## library(leaps)
+knitr::opts_chunk$set(echo = TRUE,       # include code chunk in the output file
+                      warning = FALSE,   # sometimes, you code may produce warning messages,
+                                         # you can choose to include the warning messages in
+                                         # the output file. 
+                      results = TRUE,    # you can also decide whether to include the output
+                                         # in the output file.
+                      message = FALSE,
+                      comment = NA
+                      )  
+```
+
+\
+
+
+# Introduction
+
+Sampling distributions form the cornerstone of statistical inference. They describe the probability distribution of a **sample statistic** calculated from random samples. This note explores both exact (finite-sample) and asymptotic (large-sample) distributions for key statistics including sample means, proportions, and related test statistics.
+
+
+# Sampling Distribution of the Sample Mean
+
+When the population is normal, by the property of normal distribution, the sum of the iid random variables are **exactly** normally distributed. If the population is not a normal distribution, using the Central Limit Theorem (CLT), the sum of the iid random variables is **asymptotically** normally distributed.
+
+
+## Exact Distribution
+
+For a random sample $X_1, X_2, \ldots, X_n$ from a normal population $N(\mu, \sigma^2)$, the sample mean has an exact normal distribution:
+
+$$
+\bar{X} \to N\left(\mu,  \frac{\sigma}{\sqrt{n}}\right)
+$$
+
+The standardized version is:
+
+$$
+Z = \frac{\bar{X}-\mu}{\sigma/\sqrt{n}} \to N(0, 1)
+$$
+
+**Example**:
+
+```{r}
+set.seed(123)
+n <- 10
+mu <- 5
+sigma <- 2
+
+n.samples <- 10000
+sample.means <- replicate(n.samples, mean(rnorm(n, mu, sigma)))
+
+# Create theoretical curve data
+x.vals <- seq(mu - 3*sigma/sqrt(n), mu + 3*sigma/sqrt(n), length.out = 100)
+theory.density <- dnorm(x.vals, mean = mu, sd = sigma/sqrt(n))
+theory.df <- data.frame(x = x.vals, density = theory.density)
+
+xbar.plt <- ggplot(data.frame(mean = sample.means), aes(x = mean)) +
+  geom_histogram(aes(y = ..density..), bins = 50, alpha = 0.7, fill = "gray") +
+  geom_line(data = theory.df, aes(x = x, y = density), 
+            color = "red", linewidth = 1) +
+  labs(title = "Exact Sampling Distribution of Sample Mean \nNormal Population (n = 10)",
+       x = "Sample Mean", y = "Density") +
+   theme(plot.title = element_text(hjust = 0.5),
+        plot.margin = margin(t = 35, r = 20, b = 30, l = 30, unit = "pt"))
+
+ggplotly(xbar.plt)
+
+```
+
+
+## Asymptotic Distribution (Central Limit Theorem)
+
+For any population with finite mean $\mu$ and variance $\sigma^2$, as $n \to \infty$:
+
+
+
+$$
+Z = \frac{\bar{X}-\mu}{\sigma/\sqrt{n}} \to_{\text{approx}} N(0, 1)
+$$
+
+
+**Example** Consider exponential population:
+
+```{r}
+set.seed(123)
+n.large <- 50
+lambda <- 1/5  # Mean = 5
+
+# Generate multiple samples from exponential distribution
+n.samples <- 10000
+exp.means <- replicate(n.samples, mean(rexp(n.large, rate = lambda)))
+
+# Compare with normal approximation
+theoretical.mean <- 1/lambda  # 5
+theoretical.sd <- (1/lambda)/sqrt(n.large)  # 5/sqrt(50)
+
+theory.density <- dnorm(x.vals, mean = theoretical.mean, sd = theoretical.sd)
+theory.df <- data.frame(x = x.vals, density = theory.density)
+
+# Option 1: Use only stat_function for theoretical curve (Recommended)
+gg.clt <- ggplot(data.frame(mean = exp.means), aes(x = mean)) +
+  geom_histogram(aes(y = after_stat(density)), bins = 50, alpha = 0.7, fill = "lightgreen") +
+  geom_line(data = theory.df, aes(x = x, y = density), 
+            color = "red", linewidth = 1) +
+  labs(title = "Asymptotic Sampling Distribution of Sample Mean \nExponential Population (n = 50)",
+       x = "Sample Mean", y = "Density") +
+  theme(plot.title = element_text(hjust = 0.5),
+        plot.margin = margin(t = 35, r = 20, b = 30, l = 30, unit = "pt"))
+#gg.clt
+ggplotly(gg.clt)
+```
+
+
+
+
+
+
+# Student's t-Distribution
+
+When population variance $\sigma^2$ is unknown and estimated by sample variance $S^2$:
+
+$$
+T = \frac{\bar{X}-\mu}{S/\sqrt{n}} \to  t_{n-1}
+$$
+
+where $S^2 = \frac{1}{n-1}\sum_{i=1}^n (X_i - \bar{X})^2$
+
+
+
+**Example**:
+
+```{r}
+set.seed(123)
+n <- 10
+mu <- 5
+sigma <- 2
+
+# Generate t-statistics
+n.samples <- 10000
+t.stats <- numeric(n.samples)
+
+for(i in 1:n.samples) {
+  sample.data <- rnorm(n, mu, sigma)
+  x.bar <- mean(sample.data)
+  s <- sd(sample.data)
+  t.stats[i] <- (x.bar - mu) / (s/sqrt(n))
+}
+
+# Compare with theoretical t-distribution
+x.vals <- seq(-4, 4, length.out = 200)
+theoretical.t <- dt(x.vals, df = n-1)
+theoretical.normal <- dnorm(x.vals)
+
+comparison.df <- data.frame(
+  x = rep(x.vals, 2),
+  density = c(theoretical.t, theoretical.normal),
+  distribution = rep(c("t(9)", "N(0,1)"), each = length(x.vals))
+)
+
+t.plt <- ggplot(comparison.df, aes(x = x, y = density, color = distribution)) +
+  geom_line(size = 1) +
+  labs(title = "t-Distribution vs Normal Distribution",
+       x = "Value", y = "Density") +
+    theme(plot.title = element_text(hjust = 0.5),
+        plot.margin = margin(t = 35, r = 20, b = 30, l = 30, unit = "pt")) +
+   scale_color_manual(values = c("red", "blue"))
+ggplotly(t.plt)
+```
+
+
+
+# Sampling Distribution of Sample Proportion
+
+3.1 Exact Distribution
+
+For a binomial population with success probability $p$, the sample proportion $\hat{p} = X/n$ where $X \sim Binomial(n,p)$.
+
+The exact distribution is simply the probability mass function of a binomial distribution with n trials and success probability $p$:
+
+$$
+P(\hat{p} =k/n)=P(X = k)=\frac{n!}{k!(n-k)!} p^k (1−p)^{n-k}, \ \ k = 0, 1, 2, \cdots, n.
+$$ 
+
+
+## Asymptotic Distribution
+
+By Central Limit Theorem, as $n \to \infty$:
+
+$$
+\hat{p} \to N\left(p, \sqrt{\frac{p(1-p)}{n}} \right)
+$$
+
+**Example**:
+
+```{r}
+set.seed(123)
+n <- 100
+p <- 0.3
+
+# Generate sample proportions
+n.samples <- 10000
+sample.props <- replicate(n.samples, rbinom(1, n, p)/n)
+
+# Compare with normal approximation
+theoretical.mean <- p
+theoretical.sd <- sqrt(p*(1-p)/n)
+
+x.vals <- seq(0,0.6, length=100)
+theory.density <- dnorm(x.vals, mean = theoretical.mean, sd = theoretical.sd)
+theory.df <- data.frame(x = x.vals, density = theory.density)
+
+binom.plt <- ggplot(data.frame(prop = sample.props), aes(x = prop)) +
+  geom_histogram(aes(y = ..density..), bins = 30, alpha = 0.7, fill = "skyblue") +
+  geom_line(data = theory.df, aes(x = x, y = density), 
+            color = "red", linewidth = 1) +
+  #stat_function(fun = dnorm, 
+  #              args = list(mean = theoretical_mean, sd = theoretical_sd),
+  #              color = "red", size = 1) +
+  labs(title = "Sampling Distribution of Sample Proportion",
+       subtitle = "p = 0.3, n = 100",
+       x = "Sample Proportion", y = "Density") +
+  theme(plot.title = element_text(hjust = 0.5),
+        plot.margin = margin(t = 35, r = 20, b = 30, l = 30, unit = "pt"))
+ggplotly(binom.plt)
+```
+
+
+# Chi-Square Distribution
+
+For $Z_1, Z_2, \ldots, Z_k \stackrel{iid}{\sim} N(0,1)$, using moment generating function, we can show that
+
+$$
+Q=\sum_{i=1}^k Z_i^2 \to \chi_k^2.
+$$
+ 
+
+For sample variance from normal population:
+
+$$
+\frac{(n-1)S^2}{\sigma^2} \to \chi_{n-1}^2
+$$
+**Proof**: We prove this in several steps:
+
+We show that for $X_1, \dots, X_n \iid N(\mu, \sigma^2)$, with
+
+$$
+S^2 = \frac{1}{n-1} \sum_{i=1}^n (X_i - \bar{X})^2, \quad \bar{X} = \frac{1}{n} \sum_{i=1}^n X_i,
+$$
+
+we have
+
+$$
+\frac{(n-1)S^2}{\sigma^2} \sim \chi_{n-1}^2.
+$$
+
+**Step 1: Standardize and define notation**
+
+Let $Z_i = \frac{X_i - \mu}{\sigma} \sim N(0,1)$, i.i.d. Then
+
+$$
+\bar{Z} = \frac{1}{n} \sum_{i=1}^n Z_i = \frac{\bar{X} - \mu}{\sigma}.
+$$
+
+We can write:
+
+$$
+\sum_{i=1}^n (X_i - \bar{X})^2 = \sigma^2 \sum_{i=1}^n (Z_i - \bar{Z})^2.
+$$
+
+So
+
+$$
+\frac{(n-1)S^2}{\sigma^2} = \frac{\sum_{i=1}^n (X_i - \bar{X})^2}{\sigma^2} = \sum_{i=1}^n (Z_i - \bar{Z})^2.
+$$
+
+**Step 2: Orthogonal transformation**
+
+Let \( \mathbf{Z} = (Z_1, \dots, Z_n)^T \). Choose an \( n \times n \) orthogonal matrix \( Q \) whose first row is \( \left( \frac{1}{\sqrt{n}}, \dots, \frac{1}{\sqrt{n}} \right) \). Define
+
+$$
+\mathbf{Y} = Q \mathbf{Z}.
+$$
+
+Then:
+
+* $Y_1 = \frac{1}{\sqrt{n}} \sum_{i=1}^n Z_i = \sqrt{n} \, \bar{Z}$.
+* Since $Q$ is orthogonal and $\mathbf{Z} \sim N(0, I_n)$, we have $\mathbf{Y} \sim N(0, I_n)$ as well, so $Y_1, \dots, Y_n$ are i.i.d.\ $N(0,1)$.
+
+
+**Step 3: Express sum of squares in terms of \( Y_j \)**
+
+Orthogonality implies:
+
+$$
+\sum_{i=1}^n Z_i^2 = \sum_{j=1}^n Y_j^2.
+$$
+
+Also,
+
+$$
+\sum_{i=1}^n (Z_i - \bar{Z})^2 = \sum_{i=1}^n Z_i^2 - n \bar{Z}^2.
+$$
+
+But $n \bar{Z}^2 = Y_1^2$, so
+
+$$
+\sum_{i=1}^n (Z_i - \bar{Z})^2 = \sum_{j=1}^n Y_j^2 - Y_1^2 = \sum_{j=2}^n Y_j^2.
+$$
+
+**Step 4: Distribution**
+
+Since $Y_2, \dots, Y_n$ are i.i.d.\ $N(0,1)$, we have
+
+$$
+\sum_{j=2}^n Y_j^2 \sim \chi_{n-1}^2.
+$$
+
+Thus
+
+$$
+\frac{(n-1)S^2}{\sigma^2} = \sum_{i=1}^n (Z_i - \bar{Z})^2 = \sum_{j=2}^n Y_j^2 \sim \chi_{n-1}^2.
+$$
+
+**Step 5: Independence from \( \bar{X} \)**
+
+Since $Y_1 = \sqrt{n} \bar{Z}$ is independent of $Y_2, \dots, Y_n$, it follows that $\bar{X}$ is independent of $S^2$. That is,
+
+$$
+\boxed{\frac{(n-1)S^2}{\sigma^2} \to \chi_{n-1}^2}
+$$
+
+**Example**: The $\chi^2$ distribution is derived from the standard normal distribution. We simulate standard normal random numbers and then transform them into $\chi^2$ random variables based on the derivations above. A histogram will be plotted and overlaid with the theoretical $\chi^2$ density curve.
+
+```{r}
+set.seed(123)
+n <- 10
+sigma <- 2
+
+# Generate chi-square statistics
+n.samples <- 10000
+chisq.stats <- numeric(n.samples)
+
+for(i in 1:n.samples) {
+  sample.data <- rnorm(n, 0, sigma)
+  chisq.stats[i] <- sum((sample.data/sigma)^2)
+}
+
+# Compare with theoretical chi-square
+x.vals <- seq(0, 30, length.out = 200)
+theoretical.chisq <- dchisq(x.vals, df = n)
+theory.df <- data.frame(x = x.vals, density = theoretical.chisq)
+
+chi.plt <- ggplot(data.frame(x = chisq.stats), aes(x = x)) +
+  geom_histogram(aes(y = ..density..), bins = 50, alpha = 0.7, fill = "steelblue") +
+  geom_line(data = theory.df, aes(x = x, y = density), 
+            color = "red", linewidth = 1) +
+  #stat_function(fun = dchisq, args = list(df = n), color = "red", size = 1) +
+  labs(title = "Chi-Square Distribution",
+       subtitle = "Sum of squared standard normals",
+       x = "Value", y = "Density") +
+   theme(plot.title = element_text(hjust = 0.5),
+        plot.margin = margin(t = 35, r = 20, b = 30, l = 30, unit = "pt"))
+ggplotly(chi.plt)
+```
+
+# F-Distribution
+
+For two independent chi-square random variables:
+
+$$
+F = \frac{U_1/d_1}{U_2/d_2} \to F_{d_1, d_2}
+$$
+ 
+where $U_1 \sim \chi^2_{d_1}$ and $U_2 \sim \chi^2_{d_2}$.
+
+
+
+F distribution is used for comparing variances: $\frac{S_1^2/\sigma_1^2}{S_2^2/\sigma_2^2} \sim F_{n_1-1,n_2-1}$. For example, if we test
+
+$$
+H_0: \ \sigma_1 = \sigma_2 \ \ \ v.s. \ \ \ H_a:  \sigma_1 \ne \sigma_2
+$$
+The test statistic
+
+$$
+TS = \frac{S_1^2}{S_2^2} \to F_{n_1-1, n_2-1}
+$$
+
+
+**Example**: The F distribution is directly defined based on two independent $\chi^2$ distributions, which are themselves derived from standard normal distributions. Therefore, we could generate data from normal distributions and then transform them into F random variables. To keep the process simple, we generate data directly from $\chi^2$ distributions.
+
+```{r}
+set.seed(123)
+df1 <- 10
+df2 <- 15
+
+# Generate F statistics
+n.samples <- 10000
+f.stats <- numeric(n.samples)
+
+for(i in 1:n.samples) {
+  u1 <- rchisq(1, df1)
+  u2 <- rchisq(1, df2)
+  f.stats[i] <- (u1/df1) / (u2/df2)
+}
+
+# Compare with theoretical F-distribution
+x.vals <- seq(0, 5, length.out = 200)
+theoretical.f <- df(x.vals, df1, df2)
+theory.df <- data.frame(x = x.vals, density = theoretical.f)
+
+
+
+
+f.plt <- ggplot(data.frame(x = f.stats), aes(x = x)) +
+  geom_histogram(aes(y = ..density..), bins = 50, alpha = 0.7, fill = "purple3") +
+  geom_line(data = theory.df, aes(x = x, y = density), 
+            color = "red", linewidth = 1) +
+  coord_cartesian(xlim = c(0, 5)) +
+  labs(title = paste("F-Distribution \n F(", df1, ",", df2, ")", sep = ""),
+       x = "Value", y = "Density") +
+  theme(plot.title = element_text(hjust = 0.5),
+        plot.margin = margin(t = 35, r = 20, b = 30, l = 30, unit = "pt"))
+ggplotly(f.plt)
+```
+
+
+
+# Summary of Key Relationships
+
+|Statistic	| Exact Distribution |	Asymptotic Distribution |	Conditions |
+|:----------|:--------------|:--------------------|:-------------|
+| $\bar{X}$	| $N(\mu, \sigma^2/n)$| 	$N(\mu, \sigma^2/n)$| 	Normal population or large n| 
+| $\frac{\bar{X}-\mu}{S/\sqrt{n}}$| 	$t_{n-1}$	| $N(0,1)$| 	Normal population| 
+| $\hat{p}$	| $Binomial(n,p)/n$	| $N(p, p(1-p)/n)$| 	$np, n(1-p) \geq 5$| 
+| $\frac{(n-1)S^2}{\sigma^2}$	| $\chi^2_{n-1}$ |-	| Normal population| 
+| $\frac{S_1^2/\sigma_1^2}{S_2^2/\sigma_2^2}$| $F_{n_1-1,n_2-1}$| 	-	| Normal populations| 
+
+
+**Conclusion**
+
+* Understanding sampling distributions is fundamental to statistical inference:
+
+* Exact distributions provide precise results when assumptions are met
+
+* Asymptotic distributions offer approximations for large samples
+
+* The choice between exact and asymptotic methods depends on sample size, distributional assumptions, and the specific parameter being estimated
+
+* Modern computing allows for empirical verification of these theoretical results
+
+
+These distributions form the theoretical foundation for hypothesis testing, confidence intervals, and many other statistical procedures.
+
+
+
+
+

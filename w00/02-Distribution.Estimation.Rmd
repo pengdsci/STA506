@@ -1,0 +1,713 @@
+---
+title: "Overview of Statistical Inference"
+author: "Cheng Peng"
+date: "West Chester University"
+output:
+  html_document: 
+    toc: yes
+    toc_depth: 4
+    toc_float: yes
+    number_sections: yes
+    toc_collapsed: yes
+    code_folding: show
+    code_download: yes
+    smooth_scroll: yes
+    theme: lumen
+  pdf_document: 
+    toc: yes
+    toc_depth: 4
+    fig_caption: yes
+    number_sections: yes
+    fig_width: 3
+    fig_height: 3
+  word_document: 
+    toc: yes
+    toc_depth: 4
+    fig_caption: yes
+    keep_md: yes
+editor_options: 
+  chunk_output_type: inline
+---
+
+```{css, echo = FALSE}
+#TOC::before {
+  content: "Table of Contents";
+  font-weight: bold;
+  font-size: 1.2em;
+  display: block;
+  color: navy;
+  margin-bottom: 10px;
+}
+
+
+div#TOC li {     /* table of content  */
+    list-style:upper-roman;
+    background-image:none;
+    background-repeat:none;
+    background-position:0;
+}
+
+h1.title {    /* level 1 header of title  */
+  font-size: 22px;
+  font-weight: bold;
+  color: DarkRed;
+  text-align: center;
+  font-family: "Gill Sans", sans-serif;
+}
+
+h4.author { /* Header 4 - and the author and data headers use this too  */
+  font-size: 15px;
+  font-weight: bold;
+  font-family: system-ui;
+  color: navy;
+  text-align: center;
+}
+
+h4.date { /* Header 4 - and the author and data headers use this too  */
+  font-size: 18px;
+  font-weight: bold;
+  font-family: "Gill Sans", sans-serif;
+  color: DarkBlue;
+  text-align: center;
+}
+
+h1 { /* Header 1 - and the author and data headers use this too  */
+    font-size: 20px;
+    font-weight: bold;
+    font-family: "Times New Roman", Times, serif;
+    color: darkred;
+    text-align: center;
+}
+
+h2 { /* Header 2 - and the author and data headers use this too  */
+    font-size: 18px;
+    font-weight: bold;
+    font-family: "Times New Roman", Times, serif;
+    color: navy;
+    text-align: left;
+}
+
+h3 { /* Header 3 - and the author and data headers use this too  */
+    font-size: 16px;
+    font-weight: bold;
+    font-family: "Times New Roman", Times, serif;
+    color: navy;
+    text-align: left;
+}
+
+h4 { /* Header 4 - and the author and data headers use this too  */
+    font-size: 14px;
+  font-weight: bold;
+    font-family: "Times New Roman", Times, serif;
+    color: darkred;
+    text-align: left;
+}
+
+/* Add dots after numbered headers */
+.header-section-number::after {
+  content: ".";
+
+body { background-color:white; }
+
+.highlightme { background-color:yellow; }
+
+p { background-color:white; }
+
+}
+```
+
+```{r setup, include=FALSE}
+# code chunk specifies whether the R code, warnings, and output 
+# will be included in the output files.
+if (!require("knitr")) {
+   install.packages("knitr")
+   library(knitr)
+}
+if (!require("pander")) {
+   install.packages("pander")
+   library(pander)
+}
+if (!require("ggplot2")) {
+  install.packages("ggplot2")
+  library(ggplot2)
+}
+if (!require("tidyverse")) {
+  install.packages("tidyverse")
+  library(tidyverse)
+}
+
+if (!require("plotly")) {
+  install.packages("plotly")
+  library(plotly)
+}
+
+## library(leaps)
+knitr::opts_chunk$set(echo = TRUE,       # include code chunk in the output file
+                      warning = FALSE,   # sometimes, you code may produce warning messages,
+                                         # you can choose to include the warning messages in
+                                         # the output file. 
+                      results = TRUE,    # you can also decide whether to include the output
+                                         # in the output file.
+                      message = FALSE,
+                      comment = NA
+                      )  
+```
+
+\
+
+
+# Introduction
+
+This note covers the fundamental concepts of probability distributions and their characterization through various functions, followed by non-parametric estimation methods for these distributions from data. 
+
+Probability distributions form the bedrock of statistical analysis, providing the mathematical framework to describe and analyze random phenomena. The complete behavior of any random variable can be understood through four key functions: 
+
+* **Cumulative Distribution Function (CDF)** captures the probability of observing values up to a certain point; 
+
+* **Probability Density Function (PDF)** which describes the relative likelihood at specific values for continuous variables; 
+
+* **Survival Function** measures the probability of exceeding a given value; and 
+
+* **Hazard Function** quantifies the instantaneous risk of an event occurring. 
+
+These interrelated functions provide complementary perspectives on the same underlying distribution, each offering unique insights for different analytical contexts. Understanding these fundamental concepts is crucial not only for theoretical probability but also for practical statistical inference, as they enable us to move from abstract mathematical descriptions to concrete data analysis through estimation techniques like empirical distributions and kernel density estimation.
+
+
+# Probability Distribution Functions
+
+This section discusses the four key functions that characterize a general distribution.
+
+## Cumulative Distribution Function (CDF)
+
+The Cumulative Distribution Function (CDF) of a random variable $X$ is defined as:
+
+$$
+F(x)=P(X \le x)
+$$
+**Properties**:
+
+* $F(x)$ is non-decreasing
+
+* $\lim_{x \to -\infty} F(x) = 0$
+
+* $\lim_{x \to \infty} F(x) = 1$
+
+* $F(x)$ is right-continuous
+
+
+**Example**: A graphical representation of the **standard normal distribution CDF**:
+
+$$
+\Phi(x) = F(x) = \int_{-\infty}^x \frac{1}{\sqrt{2\pi}} \exp\left[-\frac{t^2}{2} \right]dt, \ \ -\infty < x < \infty.
+$$
+
+```{r}
+# Create sequence of x values
+x <- seq(-4, 4, length.out = 1000)
+
+# Calculate CDF for normal distribution
+cdf.normal <- pnorm(x)      # CDF
+
+# Create data frame for plotting
+cdf.df <- data.frame(x = x, CDF = cdf.normal)
+
+# Plot CDF
+cdf.plt <- ggplot(cdf.df, aes(x = x, y = CDF)) +
+  geom_line(color = "blue", linewidth = 1) +
+  geom_hline(yintercept = c(0, 1), linetype = "dashed", alpha = 0.5) +
+  labs(title = "Cumulative Distribution Function (CDF) of Standard Normal",
+       x = "percentiles of standard normal distribution", y = "Cumulative Distribution: F(x)") +
+  theme(plot.title = element_text(hjust = 0.5),
+        plot.margin = margin(t = 35, r = 20, b = 30, l = 30, unit = "pt"))
+ggplotly(cdf.plt)
+```
+
+# Probability Density Function (PDF)
+
+For continuous random variables, the Probability Density Function (PDF) is the derivative of the CDF:
+
+$$
+f(x)= \frac{dF(x)}{dx}
+$$
+
+
+**Properties**:
+
+* $f(x) \geq 0$ for all $x$
+
+* $\int_{-\infty}^{\infty} f(x) dx = 1$
+
+* $P(a \leq X \leq b) = \int_a^b f(x) dx$
+
+**Relationship with CDF**:
+
+$$
+F(x)=\int_{-\infty}^x f(t)dt
+$$
+
+
+**Example**: The graphical representation of the **standard normal distribution PDF**:
+
+$$
+\phi(x) = \frac{1}{\sqrt{2\pi}}\exp\left[\frac{x^2}{2}\right]
+$$
+
+```{r}
+# Create sequence of x values
+x <- seq(-4, 4, length.out = 1000)
+
+# Calculate PDF for normal distribution
+pdf.normal <- dnorm(x)
+
+# Create data frame for plotting
+pdf.df <- data.frame(x = x, PDF = pdf.normal)
+
+# Plot PDF
+pdf.plt <- ggplot(pdf.df, aes(x = x, y = PDF)) +
+  geom_line(color = "red", linewidth = 1) +
+  labs(title = "Probability Density Function (PDF) of Standard Normal",
+       x = "percentiles of standard normal distribution", y = "Density Function: f(x)") +
+  theme(plot.title = element_text(hjust = 0.5),
+        plot.margin = margin(t = 35, r = 20, b = 30, l = 30, unit = "pt"))
+ggplotly(pdf.plt)
+```
+
+
+# Survival Function
+
+The Survival Function gives the probability that a random variable with density $f(x)$ exceeds a certain value ($x$):
+
+$$
+S(x)=P(X>x) = \int_x^\infty f(f) dt=1−F(x)
+$$
+
+
+This is particularly useful in survival analysis and reliability engineering in which positive random variables are used to model survival times and system reliability. The distribution is called lifetime distribution. 
+
+
+**Example**: Visual representation of **exponential distribution survival function**. Recall that the exponential distribution has density function
+
+$$
+f(x) = \lambda e^{-\lambda x}, \ \ 0 \lt x \lt \infty.
+$$
+
+where $\lambda > 0$ is called **rate** (inverse scale).
+
+
+```{r}
+# Exponential distribution example
+x.exp <- seq(0, 5, length.out = 1000)
+survival.exp <- 1 - pexp(x.exp, rate = 1)
+
+survival.df <- data.frame(x = x.exp, Survival = survival.exp)
+
+surv.fun.plt <- ggplot(survival.df, aes(x = x, y = Survival)) +
+  geom_line(color = "green", linewidth = 1) +
+  labs(title = "Survival Function of Exponential(1) Distribution",
+       x = "survival time", y = "survial function: S(x)") +
+  theme(plot.title = element_text(hjust = 0.5),
+        plot.margin = margin(t = 35, r = 20, b = 30, l = 30, unit = "pt"))
+ggplotly(surv.fun.plt)
+```
+
+
+
+# Hazard Rate Function
+
+The Hazard Function (or hazard rate) represents the instantaneous failure rate at time $x$, given survival up to time $x$:
+
+$$
+\lambda(x)=\lim_{\Delta\to 0} \frac{P(x\le X< {x+\Delta x}|X \ge x)}{\Delta x}. 
+$$ 
+ 
+Note that
+
+$$
+P(x\le X< x+\Delta x) = \int_x^{x+\Delta x} f(t)dt \approx f(x)\Delta x
+$$
+
+$$
+P(x\le X< x+\Delta x|X \ge x) = \frac{P(x\le X< x+\Delta x \cap X \ge x)}{P(X \ge x)} = \frac{f(x)\Delta x}{S(x)}
+$$
+
+Therefore
+
+$$
+\lambda(x)=\lim_{\Delta\to 0} \frac{P(x\le X< {x+\Delta x}|X \ge x)}{\Delta x} = \frac{f(x)}{S(x)}. 
+$$ 
+
+
+
+**Components**:
+
+* $\lambda(x)$: Hazard function
+
+* $f(x)$: Probability density function
+
+* $S(x)$: Survival function
+
+
+**Example**: Graphical representation of **Weibull Distribution Hazard Function**. Note that Weibull distribution with scale parameter $\lambda$ and shape parameter $\k$ has density
+
+$$
+f(x) = \frac{k}{\lambda}\left(\frac{x}{\lambda} \right)^{k-1}\exp(-x/\lambda )^k, \ \ x \ge 0. 
+$$
+
+We can derive the CDF in the following
+
+$$
+F(x) = 1 - \exp[-x/\lambda]^k.
+$$
+
+
+```{r}
+# Weibull distribution hazard function
+x.weibull <- seq(0.1, 5, length.out = 1000)
+
+# PDF, CDF, and Survival for Weibull(shape=2, scale=1)
+pdf.weibull <- dweibull(x.weibull, shape = 2, scale = 1)
+survival.weibull <- 1 - pweibull(x.weibull, shape = 2, scale = 1)
+hazard.weibull <- pdf.weibull / survival.weibull
+
+hazard.df <- data.frame(
+  x = x_weibull,
+  Hazard = hazard.weibull,
+  PDF = pdf.weibull,
+  Survival = survival.weibull
+)
+
+haz.plt <- ggplot(hazard.df, aes(x = x, y = Hazard)) +
+  geom_line(color = "purple", linewidth = 1) +
+  labs(title = "Hazard Function of Weibull(shape=2, scale=1)",
+       x = "Survival time", 
+       y = expression(paste("Hazard rate function:", lambda, "(x)"))) +
+  theme(plot.title = element_text(hjust = 0.5),
+        plot.margin = margin(t = 35, r = 20, b = 30, l = 30, unit = "pt"))
+ggplotly(haz.plt)
+```
+
+
+# Distribution Estimation
+
+We only foxus on the nonparametric estimation of CDF and PDF in this section.
+
+## Empirical Distribution Function (EDF)
+
+The Empirical Distribution Function is a non-parametric estimator of the true CDF:
+
+$$
+F_n(x) =\frac{1}{n}\sum_{i=1}^n I(X_i \le x) = \frac{[\ \text{Number of  } X_i \le x]}{n}
+$$
+
+where $I(\cdot)$ is the indicator function.
+
+**Properties**:
+
+* **Consistent estimator** of the true CDF
+
+* Step function with jumps at observed data points
+
+* Unbiased estimator
+
+
+**Example**: Empirical Distribution
+
+```{r}
+set.seed(123)
+# Generate sample data
+sample_data <- rnorm(100, mean = 0, sd = 1)
+
+# Create empirical CDF
+empirical_cdf <- ecdf(sample_data)
+
+# Plot empirical vs theoretical CDF
+plot_df <- data.frame(
+  x = seq(-3, 3, length.out = 1000),
+  Empirical = empirical_cdf(seq(-3, 3, length.out = 1000)),
+  Theoretical = pnorm(seq(-3, 3, length.out = 1000))
+)
+
+plot_df_long <- plot_df %>%
+  pivot_longer(cols = c(Empirical, Theoretical), 
+               names_to = "Type", values_to = "CDF")
+
+Fn.plt <- ggplot(plot_df_long, aes(x = x, y = CDF, color = Type)) +
+  geom_line(linewidth = 1) +
+  scale_color_manual(values = c("Empirical" = "blue", "Theoretical" = "red")) +
+  labs(title = "Empirical vs Theoretical CDF",
+       subtitle = "Sample size n = 100 from Standard Normal",
+       x = "x", y = "CDF") +
+  theme(plot.title = element_text(hjust = 0.5),
+        plot.margin = margin(t = 35, r = 20, b = 30, l = 30, unit = "pt"))
+ggplotly(Fn.plt)
+```
+
+
+## Kernel Density Estimation (KDE)
+
+Kernel Density Estimation provides a smooth estimate of the PDF:
+
+$$
+\hat{f}_h(x) = \frac{1}{nh}\sum_{i=1}^n K\left( \frac{x-X_i}{h}\right) = \frac{1}{n}\sum_{i=1}^n\left[\frac{K\left( \frac{x-X_i}{h}\right)}{h} \right]
+$$
+
+where:
+
+* $K(\cdot)$ is the **kernel function** serves as a **weighting function** that assigns a probability density to a given point based on its proximity to the data points. Its primary purposes are:
+  + **Smoothing**: Replaces jagged histograms with a continuous, differentiable curve.
+  + **Local Weighting**: Determines how much influence a data point $x_i$ has on the density estimate at a target point $x$, based on their proximity.
+  + **Normalization**: Guarantees the final result is a valid probability density function (integrates to 1).
+  + **Flexibility**: The choice of kernel (Gaussian, Epanechnikov, etc.) allows the user to control the smoothness properties of the final estimate, though the bandwidth (h) is far more important.
+
+* $h > 0$ is the bandwidth parameter
+
+* $n$ is the sample size
+
+
+
+
+
+
+
+
+
+
+**How Kernel Estimation Works?**
+
+
+
+
+
+
+
+
+
+
+
+
+```{r}
+# Complete KDE visualization
+set.seed(123)
+sample_data <- c(rnorm(30, mean = -1, sd = 0.7), 
+                 rnorm(30, mean = 2, sd = 0.5))
+
+# Create the final plot
+x_final <- seq(-4, 4, length.out = 200)
+final_density <- density(sample_data, bw = 0.5)
+
+# Create individual kernels plot
+individual_kernels <- data.frame()
+for (i in 1:length(sample_data)) {
+  kernel_y <- dnorm(x_final, mean = sample_data[i], sd = 0.5) / length(sample_data)
+  individual_kernels <- rbind(individual_kernels,
+                             data.frame(x = x_final, y = kernel_y, 
+                                       point = as.factor(i)))
+}
+
+# Sum of individual kernels
+sum_kernels <- individual_kernels %>%
+  group_by(x) %>%
+  summarize(y_sum = sum(y))
+
+ggplot() +
+  # Individual kernels (very transparent)
+  geom_line(data = individual_kernels, aes(x = x, y = y, group = point), 
+            color = "gray", alpha = 0.1, linewidth = 0.3) +
+  # Sum of all kernels (our manual KDE)
+  geom_line(data = sum_kernels, aes(x = x, y = y_sum), 
+            color = "blue", linewidth = 1, linetype = "dashed") +
+  # Official KDE from density() function
+  geom_line(data = data.frame(x = final_density$x, y = final_density$y),
+            aes(x = x, y = y), color = "red", linewidth = 1.2) +
+  # Data points
+  geom_rug(data = data.frame(x = sample_data), aes(x = x, y = 0), 
+           sides = "b", alpha = 0.5) +
+  labs(title = "Complete KDE Process: From Individual Kernels to Final Density",
+       subtitle = "Gray: Individual kernels | Blue: Manual sum | Red: density() function",
+       x = "x", y = "Density") +
+  theme_minimal()
+```
+
+
+
+**Common Kernel Functions**:
+
+Gaussian: $K(u) = \frac{1}{\sqrt{2\pi}} e^{-\frac{1}{2}u^2}$
+
+Epanechnikov: $K(u) = \frac{3}{4}(1 - u^2)$ for $|u| \leq 1$
+
+Rectangular: $K(u) = \frac{1}{2}$ for $|u| \leq 1$
+
+
+**Bandwidth Selection**: The bandwidth $h$ controls the smoothness of the estimate:
+
+* Small $h$: undersmoothing (high variance)
+
+* Large $h$: oversmoothing (high bias)
+
+
+**Example**: Kernel Density Estimation
+
+```{r}
+# Generate sample data
+set.seed(123)
+sample_data <- c(rnorm(200, mean = -1, sd = 0.8), 
+                 rnorm(200, mean = 2, sd = 1))
+
+# Create KDE with different bandwidths
+kde_default <- density(sample_data, kernel = "gaussian")
+kde_small_bw <- density(sample_data, bw = 0.2, kernel = "gaussian")
+kde_large_bw <- density(sample_data, bw = 1, kernel = "gaussian")
+
+# Create comparison data frame
+kde_comparison <- data.frame(
+  x = kde_default$x,
+  Default = kde_default$y,
+  Small_BW = kde_small_bw$y,
+  Large_BW = kde_large_bw$y
+)
+
+kde_comparison_long <- kde_comparison %>%
+  pivot_longer(cols = c(Default, Small_BW, Large_BW), 
+               names_to = "Bandwidth", values_to = "Density")
+
+# Plot KDE with different bandwidths
+ggplot(kde_comparison_long, aes(x = x, y = Density, color = Bandwidth)) +
+  geom_line(linewidth = 1) +
+  geom_rug(data = data.frame(x = sample_data), aes(x = x, y = 0), 
+           inherit.aes = FALSE, alpha = 0.3) +
+  scale_color_manual(
+    values = c("Default" = "blue", "Small_BW" = "red", "Large_BW" = "orange"),
+    labels = c("Default (bw = 0.5)", "Small (bw = 0.2)", "Large (bw = 1.0)")
+  ) +
+  labs(title = "Kernel Density Estimation with Different Bandwidths",
+       subtitle = "Sample from mixture of two normal distributions",
+       x = "x", y = "Density") +
+  theme_minimal()
+```
+
+
+Comparison of Different Kernels
+
+```{r}
+# Compare different kernel functions
+x_kernel <- seq(-3, 3, length.out = 1000)
+
+# Define kernel functions
+gaussian_kernel <- dnorm(x_kernel)
+epanechnikov_kernel <- ifelse(abs(x_kernel) <= 1, 0.75 * (1 - x_kernel^2), 0)
+rectangular_kernel <- ifelse(abs(x_kernel) <= 1, 0.5, 0)
+
+kernels_df <- data.frame(
+  x = x_kernel,
+  Gaussian = gaussian_kernel,
+  Epanechnikov = epanechnikov_kernel,
+  Rectangular = rectangular_kernel
+)
+
+kernels_long <- kernels_df %>%
+  pivot_longer(cols = c(Gaussian, Epanechnikov, Rectangular), 
+               names_to = "Kernel", values_to = "Density")
+
+ggplot(kernels_long, aes(x = x, y = Density, color = Kernel)) +
+  geom_line(linewidth = 1) +
+  labs(title = "Common Kernel Functions",
+       x = "u", y = "K(u)") +
+  theme_minimal()
+```
+
+
+
+
+Practical Implementation in R
+Complete Example: Distribution Analysis
+{r
+# Generate sample data from a mixture distribution
+set.seed(123)
+n <- 1000
+data_mixture <- c(rnorm(n*0.6, mean = 0, sd = 1), 
+                  rnorm(n*0.4, mean = 3, sd = 0.5))
+
+# Calculate empirical CDF
+emp_cdf <- ecdf(data_mixture)
+
+# Kernel density estimation
+kde_mixture <- density(data_mixture)
+
+# True PDF (for comparison - known in this simulation)
+true_pdf <- function(x) {
+  0.6 * dnorm(x, mean = 0, sd = 1) + 0.4 * dnorm(x, mean = 3, sd = 0.5)
+}
+
+# Create comprehensive plot
+x_plot <- seq(-3, 6, length.out = 1000)
+
+plot_data <- data.frame(
+  x = x_plot,
+  True_PDF = true_pdf(x_plot),
+  KDE = approx(kde_mixture$x, kde_mixture$y, xout = x_plot)$y,
+  Empirical_CDF = emp_cdf(x_plot),
+  True_CDF = 0.6 * pnorm(x_plot, mean = 0, sd = 1) + 
+             0.4 * pnorm(x_plot, mean = 3, sd = 0.5)
+)
+
+# PDF comparison
+pdf_plot <- ggplot(plot_data, aes(x = x)) +
+  geom_line(aes(y = True_PDF, color = "True PDF"), linewidth = 1) +
+  geom_line(aes(y = KDE, color = "KDE"), linewidth = 1, linetype = "dashed") +
+  geom_histogram(data = data.frame(x = data_mixture), 
+                 aes(x = x, y = ..density..), 
+                 fill = "gray", alpha = 0.5, bins = 30) +
+  scale_color_manual(values = c("True PDF" = "red", "KDE" = "blue")) +
+  labs(title = "PDF Estimation: True vs KDE",
+       x = "x", y = "Density", color = "") +
+  theme_minimal()
+
+# CDF comparison
+cdf_plot <- ggplot(plot_data, aes(x = x)) +
+  geom_line(aes(y = True_CDF, color = "True CDF"), linewidth = 1) +
+  geom_line(aes(y = Empirical_CDF, color = "Empirical CDF"), 
+            linewidth = 1, linetype = "dashed") +
+  scale_color_manual(values = c("True CDF" = "red", "Empirical CDF" = "blue")) +
+  labs(title = "CDF Estimation: True vs Empirical",
+       x = "x", y = "CDF", color = "") +
+  theme_minimal()
+
+# Display plots side by side
+library(gridExtra)
+grid.arrange(pdf_plot, cdf_plot, ncol = 2)
+Summary Table
+{r
+summary_table <- data.frame(
+  Function = c("CDF", "PDF", "Survival", "Hazard", "Empirical CDF", "KDE"),
+  Definition = c(
+    "$F(x) = P(X \\leq x)$",
+    "$f(x) = \\frac{d}{dx}F(x)$",
+    "$S(x) = P(X > x) = 1 - F(x)$",
+    "$\\lambda(x) = \\frac{f(x)}{S(x)}$",
+    "$\\hat{F}_n(x) = \\frac{1}{n}\\sum I(X_i \\leq x)$",
+    "$\\hat{f}_h(x) = \\frac{1}{nh}\\sum K(\\frac{x-X_i}{h})$"
+  ),
+  Properties = c(
+    "Non-decreasing, right-continuous",
+    "Non-negative, integrates to 1",
+    "Non-increasing, right-continuous",
+    "Instantaneous failure rate",
+    "Step function, unbiased",
+    "Smooth, depends on bandwidth"
+  )
+)
+
+kable(summary_table, caption = "Summary of Distribution Functions and Estimators")
+Key Points
+CDF provides complete information about the distribution of a random variable
+
+PDF describes the relative likelihood of a continuous random variable
+
+Survival and Hazard functions are essential for time-to-event data analysis
+
+Empirical CDF is a non-parametric estimator that converges to the true CDF
+
+Kernel Density Estimation provides smooth PDF estimates but requires careful bandwidth selection
+
+The choice of kernel typically has less impact than bandwidth selection in KDE

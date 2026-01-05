@@ -1,0 +1,539 @@
+---
+title: "Basics of R Programming"
+author: "Cheng Peng"
+date: "West Chester University"
+output:
+  html_document: 
+    toc: yes
+    toc_depth: 4
+    toc_float: yes
+    number_sections: yes
+    toc_collapsed: yes
+    code_folding: show
+    code_download: yes
+    smooth_scroll: yes
+    theme: lumen
+  pdf_document: 
+    toc: yes
+    toc_depth: 4
+    fig_caption: yes
+    number_sections: yes
+    fig_width: 3
+    fig_height: 3
+  word_document: 
+    toc: yes
+    toc_depth: 4
+    fig_caption: yes
+    keep_md: yes
+editor_options: 
+  chunk_output_type: inline
+---
+
+```{css, echo = FALSE}
+#TOC::before {
+  content: "Table of Contents";
+  font-weight: bold;
+  font-size: 1.2em;
+  display: block;
+  color: navy;
+  margin-bottom: 10px;
+}
+
+
+div#TOC li {     /* table of content  */
+    list-style:upper-roman;
+    background-image:none;
+    background-repeat:none;
+    background-position:0;
+}
+
+h1.title {    /* level 1 header of title  */
+  font-size: 22px;
+  font-weight: bold;
+  color: DarkRed;
+  text-align: center;
+  font-family: "Gill Sans", sans-serif;
+}
+
+h4.author { /* Header 4 - and the author and data headers use this too  */
+  font-size: 15px;
+  font-weight: bold;
+  font-family: system-ui;
+  color: navy;
+  text-align: center;
+}
+
+h4.date { /* Header 4 - and the author and data headers use this too  */
+  font-size: 18px;
+  font-weight: bold;
+  font-family: "Gill Sans", sans-serif;
+  color: DarkBlue;
+  text-align: center;
+}
+
+h1 { /* Header 1 - and the author and data headers use this too  */
+    font-size: 20px;
+    font-weight: bold;
+    font-family: "Times New Roman", Times, serif;
+    color: darkred;
+    text-align: center;
+}
+
+h2 { /* Header 2 - and the author and data headers use this too  */
+    font-size: 18px;
+    font-weight: bold;
+    font-family: "Times New Roman", Times, serif;
+    color: navy;
+    text-align: left;
+}
+
+h3 { /* Header 3 - and the author and data headers use this too  */
+    font-size: 16px;
+    font-weight: bold;
+    font-family: "Times New Roman", Times, serif;
+    color: navy;
+    text-align: left;
+}
+
+h4 { /* Header 4 - and the author and data headers use this too  */
+    font-size: 14px;
+  font-weight: bold;
+    font-family: "Times New Roman", Times, serif;
+    color: darkred;
+    text-align: left;
+}
+
+/* Add dots after numbered headers */
+.header-section-number::after {
+  content: ".";
+
+body { background-color:white; }
+
+.highlightme { background-color:yellow; }
+
+p { background-color:white; }
+
+}
+```
+
+```{r setup, include=FALSE}
+# code chunk specifies whether the R code, warnings, and output 
+# will be included in the output files.
+if (!require("knitr")) {
+   install.packages("knitr")
+   library(knitr)
+}
+if (!require("pander")) {
+   install.packages("pander")
+   library(pander)
+}
+if (!require("psych")) {
+  install.packages("psych")
+  library(psych)
+}
+if (!require("RColorBrewer")) {
+  install.packages("RColorBrewer")
+  library(RColorBrewer)
+}
+
+if (!require("boot")) {
+  install.packages("boot")
+  library(boot)
+}
+
+## library(leaps)
+knitr::opts_chunk$set(echo = TRUE,       # include code chunk in the output file
+                      warning = FALSE,   # sometimes, you code may produce warning messages,
+                                         # you can choose to include the warning messages in
+                                         # the output file. 
+                      results = TRUE,    # you can also decide whether to include the output
+                                         # in the output file.
+                      message = FALSE,
+                      comment = NA
+                      )  
+```
+
+\
+
+# Introduction
+
+This lecture note covers essential R programming concepts for performing classical statistical inference, with emphasis on maximum likelihood estimation (MLE) of population parameters.
+
+ <font color = "red" size = 4>**R is case sensitive!**  `Code`, `code`, `coDe` and `codE` are different.   </font> 
+
+# R Naming Conventions
+
+This section provides a guide to R naming conventions, combining official recommendations, community best practices, and real-world usage.
+
+R is unique because it has multiple style guides, but the following conventions are widely adopted and will make your code more readable and robust.
+
+**The Core Principle**: *Be Consistent and Human-Readable*! The name should clearly indicate what the object is or does.
+
+## Naming Objects
+
+R objects include variables, functions, data frames, vectors, etc. The following is a list of conventions
+
+**Conventions**
+
+* **Preferred Convention**: `snake_case`
+  + Use lowercase letters and separate words with an underscore `_`.
+  + This is the modern standard, recommended by the tidyverse style guide and used in most contemporary R packages (e.g., `dplyr`, `ggplot2`).
+  + Examples: `student_grades`, `filtered_data`, `calculate_mean_sd`
+
+* **Historical/Alternative Convention**: `period.separated`
+  + Base R and some older packages use periods. It's still valid but less common in new code.
+  + Examples: data.frame, student.grades, as.numeric
+
+* **Camel Case and Upper Camel Cases**: `camelCase`, `UpperCamelCase` 
+  + While they work, they are not the dominant convention in the R community. 
+  + They are more common in Java/JavaScript-influenced environments.
+
+
+## Special Cases & Important Notes
+
+* **Reserved Names**: Never override base R functions or constants.
+  + DON'T do this: `data <- "my info"` or `c <- 15` (you've now overwritten the `c()` combine function!).
+
+* **Data Frames & Tibbles**:
+  + Use nouns in snake_case.
+  + Examples: `survey_results`, `clinical_trials_2024`
+
+* **Columns within a Data Frame**:
+  + Use `snake_case`. This is critical for working seamlessly with the tidyverse (`dplyr`, `ggplot2`, `tidyr`).
+  + Example: `customer_id`, `order_date`, `total_amount_usd`
+
+* **Logical Vectors (Booleans)**:
+  + It's often helpful to prefix with `is_`, `has_`, or `can_`.
+  + Examples: `is_valid`, `has_missing_data`, `can_process`
+
+* **Length**:
+  + R object names are generally limited to 10,000 bytes for version 2.13.0 or newer.
+  + Be descriptive but concise. `i` is fine for a simple loop counter, but `gene_expression_matrix` is better than `gem` for a key dataset
+
+
+## Rules for Syntactically Valid Names
+
+For an object name to be **syntactically valid** (meaning it can be used without special characters like backticks), it must follow these rules: 
+
+* It can only contain letters, numbers, dots (`.`), or underscores (`_`).
+* It must start with a letter or a dot.
+* If it starts with a dot, the next character cannot be a number (e.g., `.2way` is not valid).
+* It cannot be one of the reserved words in R (e.g., `if`, `else`, `TRUE`, `FALSE`, `NULL`, `function`).
+* It cannot contain spaces.
+* R is **case-sensitive** (e.g., `myObject` and `myobject` are different). 
+
+
+# Basic R Syntax and Logical Comparisons
+
+**Logical Comparisons and Testing**
+
+```{r}
+# Basic logical operators
+x <- 5
+y <- 10
+
+# Equality testing
+x == y      # FALSE
+x != y      # TRUE
+
+# Numerical comparisons
+x < y       # TRUE
+x > y       # FALSE
+x <= 5      # TRUE
+y >= 10     # TRUE
+
+# Multiple conditions
+(x < y) & (x > 0)    # TRUE (AND)
+(x > y) | (y > 0)    # TRUE (OR)
+!(x == y)            # TRUE (NOT)
+
+# Testing for missing values
+z <- NA
+is.na(z)             # TRUE
+
+# Testing data types
+is.numeric(x)        # TRUE
+is.character("hello") # TRUE
+is.logical(TRUE)     # TRUE
+```
+
+# Control Statements
+
+**If-Else Statements**
+
+```{r}
+# Basic if statement
+x <- 5
+
+if (x > 0) {
+  print("x is positive")
+}
+
+# If-else statement
+if (x > 10) {
+  print("x is greater than 10")
+} else {
+  print("x is 10 or less")
+}
+
+# Multiple conditions
+score <- 85
+
+if (score >= 90) {
+  grade <- "A"
+} else if (score >= 80) {
+  grade <- "B"
+} else if (score >= 70) {
+  grade <- "C"
+} else {
+  grade <- "F"
+}
+
+print(paste("Grade:", grade))
+```
+
+
+**For Loops**
+
+```{r}
+# Basic for loop
+for (i in 1:5) {
+  print(paste("Iteration:", i))
+}
+
+# Looping through vector elements
+values <- c(2, 4, 6, 8, 10)
+for (val in values) {
+  print(paste("Value:", val))
+}
+
+# Calculating sum using for loop
+sum.result <- 0
+for (i in 1:10) {
+  sum.result <- sum.result + i
+}
+print(paste("Sum:", sum.result))
+```
+
+**While Loops**
+
+```{r}
+# Basic while loop
+counter <- 1
+while (counter <= 5) {
+  print(paste("Counter:", counter))
+  counter <- counter + 1
+}
+
+# While loop with condition
+x <- 10
+while (x > 0) {
+  print(paste("x =", x))
+  x <- x - 2
+}
+```
+
+
+# User-Defined Functions
+
+**Basic Function Structure**
+
+```{r}
+# Simple function
+square <- function(x) {
+  return(x^2)
+}
+
+# Using the function
+square(5)    # 25
+square(1:5)  # 1, 4, 9, 16, 25
+
+# Function with multiple parameters
+multiply <- function(a, b) {
+  result <- a * b
+  return(result)
+}
+
+multiply(4, 5)  # 20
+```
+
+**Functions with Default Parameters**
+
+
+```{r}
+# Function with default values
+power.function <- function(x, exponent = 2) {
+  return(x^exponent)
+}
+
+power.function(3)        # 9 (uses default exponent = 2)
+power.function(3, 3)     # 27
+power.function(2, 0.5)   # 1.414214 (square root)
+```
+
+
+# Statistical Functions for Inference
+
+**Probability Density Functions**
+
+```{r}
+# Normal distribution PDF
+normal.pdf <- function(x, mu = 0, sigma = 1) {
+  (1 / (sigma * sqrt(2 * pi))) * exp(-0.5 * ((x - mu) / sigma)^2)
+}
+
+# Example usage
+normal.pdf(0)           # PDF at 0 for standard normal
+normal.pdf(1, 0, 1)     # PDF at 1 for standard normal
+
+# Built-in R function for comparison
+dnorm(0)                # Same as above'
+```
+
+**Likelihood Function Example**
+
+```{r}
+# Likelihood function for normal distribution
+normal.likelihood <- function(data, mu, sigma) {
+  n <- length(data)
+  likelihood <- 1
+  
+  for (i in 1:n) {
+    likelihood <- likelihood * normal.pdf(data[i], mu, sigma)
+  }
+  
+  return(likelihood)
+}
+
+# More efficient vectorized version
+normal.likelihood.vectorized <- function(data, mu, sigma) {
+  prod(dnorm(data, mean = mu, sd = sigma))
+}
+
+# Example usage
+set.seed(123)
+sample.data <- rnorm(100, mean = 5, sd = 2)
+normal.likelihood.vectorized(sample.data, mu = 5, sigma = 2)
+```
+
+# Maximum Likelihood Estimation
+
+**MLE for Normal Distribution**
+
+```{r}
+# Negative log-likelihood for normal distribution
+normal.neg.log.likelihood <- function(params, data) {
+  mu <- params[1]
+  sigma <- params[2]
+  
+  # Ensure sigma is positive
+  if (sigma <= 0) return(Inf)
+  
+  n <- length(data)
+  log.likelihood <- -n/2 * log(2 * pi * sigma^2) - 
+                    sum((data - mu)^2) / (2 * sigma^2)
+  
+  return(-log.likelihood)  # Return negative for minimization
+}
+
+# MLE estimation using optim()
+set.seed(123)
+data <- rnorm(100, mean = 5, sd = 2)
+
+# Initial parameter guesses
+initial.params <- c(mu = 0, sigma = 1)
+
+# Find MLE
+mle.result <- optim(par = initial.params, 
+                    fn = normal.neg.log.likelihood, 
+                    data = data,
+                    method = "L-BFGS-B",
+                    lower = c(-Inf, 1e-6),
+                    upper = c(Inf, Inf))
+
+# Results
+mle.mu <- mle.result$par[1]
+mle.sigma <- mle.result$par[2]
+
+cat("MLE estimates:\n")
+cat("mu =", round(mle.mu, 3), "\n")
+cat("sigma =", round(mle.sigma, 3), "\n")
+
+# Compare with analytical solutions
+analytical.mu <- mean(data)
+analytical.sigma <- sd(data) * sqrt((length(data) - 1) / length(data))
+
+cat("\nAnalytical solutions:\n")
+cat("mu =", round(analytical.mu, 3), "\n")
+cat("sigma =", round(analytical.sigma, 3), "\n")
+```
+
+
+# MLE for Poisson Distribution
+
+```{r}
+# Negative log-likelihood for Poisson distribution
+poisson.neg.log.likelihood <- function(lambda, data) {
+  n <- length(data)
+  sum.data <- sum(data)
+  
+  log.likelihood <- sum.data * log(lambda) - n * lambda - sum(lfactorial(data))
+  
+  return(-log.likelihood)
+}
+
+# MLE for Poisson data
+set.seed(123)
+poisson.data <- rpois(100, lambda = 3)
+
+# Find MLE using optimize
+mle.lambda <- optimize(f = poisson.neg.log.likelihood, 
+                       interval = c(0.1, 10), 
+                       data = poisson.data)$minimum
+
+cat("Poisson MLE:\n")
+cat("lambda =", round(mle.lambda, 3), "\n")
+cat("Sample mean =", round(mean(poisson.data), 3), "\n")
+```
+
+# Confidence Intervals
+
+**Function for Normal CI**
+
+```{r}
+# Confidence interval for mean
+confidence.interval <- function(data, confidence = 0.95) {
+  n <- length(data)
+  mean.val <- mean(data)
+  sd.val <- sd(data)
+  se <- sd.val / sqrt(n)
+  
+  alpha <- 1 - confidence
+  t.value <- qt(1 - alpha/2, df = n - 1)
+  
+  margin.error <- t.value * se
+  
+  lower <- mean.val - margin.error
+  upper <- mean.val + margin.error
+  
+  return(c(lower = lower, upper = upper))
+}
+
+# Example usage
+set.seed(123)
+sample.data <- rnorm(30, mean = 10, sd = 2)
+
+ci.95 <- confidence.interval(sample.data, 0.95)
+ci.99 <- confidence.interval(sample.data, 0.99)
+
+cat("95% CI:", round(ci.95, 3), "\n")
+cat("99% CI:", round(ci.99, 3), "\n")
+```
+
+
+
+
+
+
+
+

@@ -1,0 +1,386 @@
+---
+title: "Overview of Statistical Inference"
+author: "Cheng Peng"
+date: "West Chester University"
+output:
+  html_document: 
+    toc: yes
+    toc_depth: 4
+    toc_float: yes
+    number_sections: yes
+    toc_collapsed: yes
+    code_folding: hide
+    code_download: yes
+    smooth_scroll: yes
+    theme: lumen
+  pdf_document: 
+    toc: yes
+    toc_depth: 4
+    fig_caption: yes
+    number_sections: yes
+    fig_width: 3
+    fig_height: 3
+  word_document: 
+    toc: yes
+    toc_depth: 4
+    fig_caption: yes
+    keep_md: yes
+editor_options: 
+  chunk_output_type: inline
+---
+
+```{css, echo = FALSE}
+#TOC::before {
+  content: "Table of Contents";
+  font-weight: bold;
+  font-size: 1.2em;
+  display: block;
+  color: navy;
+  margin-bottom: 10px;
+}
+
+
+div#TOC li {     /* table of content  */
+    list-style:upper-roman;
+    background-image:none;
+    background-repeat:none;
+    background-position:0;
+}
+
+h1.title {    /* level 1 header of title  */
+  font-size: 22px;
+  font-weight: bold;
+  color: DarkRed;
+  text-align: center;
+  font-family: "Gill Sans", sans-serif;
+}
+
+h4.author { /* Header 4 - and the author and data headers use this too  */
+  font-size: 15px;
+  font-weight: bold;
+  font-family: system-ui;
+  color: navy;
+  text-align: center;
+}
+
+h4.date { /* Header 4 - and the author and data headers use this too  */
+  font-size: 18px;
+  font-weight: bold;
+  font-family: "Gill Sans", sans-serif;
+  color: DarkBlue;
+  text-align: center;
+}
+
+h1 { /* Header 1 - and the author and data headers use this too  */
+    font-size: 20px;
+    font-weight: bold;
+    font-family: "Times New Roman", Times, serif;
+    color: darkred;
+    text-align: center;
+}
+
+h2 { /* Header 2 - and the author and data headers use this too  */
+    font-size: 18px;
+    font-weight: bold;
+    font-family: "Times New Roman", Times, serif;
+    color: navy;
+    text-align: left;
+}
+
+h3 { /* Header 3 - and the author and data headers use this too  */
+    font-size: 16px;
+    font-weight: bold;
+    font-family: "Times New Roman", Times, serif;
+    color: navy;
+    text-align: left;
+}
+
+h4 { /* Header 4 - and the author and data headers use this too  */
+    font-size: 14px;
+  font-weight: bold;
+    font-family: "Times New Roman", Times, serif;
+    color: darkred;
+    text-align: left;
+}
+
+/* Add dots after numbered headers */
+.header-section-number::after {
+  content: ".";
+
+body { background-color:white; }
+
+.highlightme { background-color:yellow; }
+
+p { background-color:white; }
+
+}
+```
+
+```{r setup, include=FALSE}
+# code chunk specifies whether the R code, warnings, and output 
+# will be included in the output files.
+if (!require("knitr")) {
+   install.packages("knitr")
+   library(knitr)
+}
+if (!require("pander")) {
+   install.packages("pander")
+   library(pander)
+}
+if (!require("psych")) {
+  install.packages("psych")
+  library(psych)
+}
+if (!require("RColorBrewer")) {
+  install.packages("RColorBrewer")
+  library(RColorBrewer)
+}
+
+if (!require("boot")) {
+  install.packages("boot")
+  library(boot)
+}
+
+## library(leaps)
+knitr::opts_chunk$set(echo = TRUE,       # include code chunk in the output file
+                      warning = FALSE,   # sometimes, you code may produce warning messages,
+                                         # you can choose to include the warning messages in
+                                         # the output file. 
+                      results = TRUE,    # you can also decide whether to include the output
+                                         # in the output file.
+                      message = FALSE,
+                      comment = NA
+                      )  
+```
+
+\
+
+# Introduction
+
+Statistical inference is the process of using data analysis to draw conclusions about populations or scientific truths from samples. It allows us to make probabilistic statements about unknown parameters based on observed data.
+
+# Point Estimation
+
+Point estimation involves using sample data to calculate a single value (statistic) that serves as a **best guess** for an unknown population parameter.
+
+**Key Concepts**
+
+* **Estimator**: A rule or formula for calculating an estimate
+
+* **Estimate**: The specific value obtained from a particular sample
+
+Properties of good estimators: Unbiasedness, consistency, efficiency
+
+```{r}
+# Example: Estimating population mean
+set.seed(123)
+sample_data <- rnorm(100, mean = 50, sd = 10)
+point_estimate <- mean(sample_data)
+cat("Point estimate of population mean:", round(point_estimate, 2))
+```
+
+
+**Common Point Estimators**
+
+* Sample mean ($\bar{x}$) for population mean ($\mu$)
+
+* Sample proportion ($\hat{p}$) for population proportion ($p$)
+
+* Sample variance ($s^2$) for population variance ($\sigma^2$)
+
+
+#  Confidence Intervals
+
+Confidence intervals provide a range of plausible values for an unknown population parameter, accompanied by a confidence level that quantifies the uncertainty.
+
+**Interpretation**
+
+A 95% confidence interval means that if we were to take many samples and construct confidence intervals from each, approximately 95% of those intervals would contain the true population parameter.
+
+```{r}
+# 95% Confidence Interval for mean
+n <- length(sample_data)
+standard_error <- sd(sample_data) / sqrt(n)
+margin_error <- qt(0.975, df = n-1) * standard_error
+ci_lower <- point_estimate - margin_error
+ci_upper <- point_estimate + margin_error
+
+cat("95% Confidence Interval: [", round(ci_lower, 2), ",", round(ci_upper, 2), "]")
+```
+
+```{r}
+# Using built-in R function
+t_test_result <- t.test(sample_data)
+cat("\nUsing t.test():", round(t_test_result$conf.int, 2))
+```
+
+
+
+**Common Confidence Intervals**
+
+* **Mean**: $\bar{x} \pm t_{\alpha/2} \cdot \frac{s}{\sqrt{n}}$
+
+* **Proportion**: $\hat{p} \pm z_{\alpha/2} \cdot \sqrt{\frac{\hat{p}(1-\hat{p})}{n}}$
+
+* **Variance**: $\left[\frac{(n-1)s^2}{\chi^2_{\alpha/2}}, \frac{(n-1)s^2}{\chi^2_{1-\alpha/2}}\right]$
+
+
+#  Hypothesis Testing
+
+Hypothesis testing is a formal procedure for investigating ideas about population parameters using sample data.
+
+**Components**
+
+* **Null hypothesis ($H_0$)**: The default assumption to be tested
+
+* **Alternative hypothesis ($H_1$ or $H_a$)**: The research hypothesis
+
+* **Test statistic**: A standardized value calculated from sample data
+
+* **p-value**: The probability of observing the data if $H_0$ is true
+
+* **Significance level ($\alpha$)**: The threshold for rejecting $H_0$
+
+```{r}
+# One-sample t-test for mean
+# H0: μ = 50 vs H1: μ ≠ 50
+test_result <- t.test(sample_data, mu = 50)
+
+cat("Test statistic:", round(test_result$statistic, 3), "\n")
+cat("p-value:", round(test_result$p.value, 4), "\n")
+cat("Conclusion:", ifelse(test_result$p.value < 0.05, 
+                         "Reject H0", "Fail to reject H0"))
+```
+
+
+**Types of Tests**
+
+* **One-sample tests**: Compare sample to known parameter
+
+* **Two-sample tests**: Compare two independent samples
+
+* **Paired tests**: Compare related measurements
+
+* **Chi-square tests**: Test for independence or goodness-of-fit
+
+#  Bayesian Inference
+
+Bayesian inference provides an alternative framework that incorporates prior beliefs and updates them with observed data using Bayes' theorem.
+
+**Bayes' Theorem**
+
+$$
+P(\theta|X)= \frac{P(X|\theta)P(\theta)}{P(X)}
+$$
+ 
+
+Where:
+
+* $P(\theta|X)$: Posterior distribution
+
+* $P(X|\theta)$: Likelihood function
+
+* $P(\theta)$: Prior distribution
+
+* $P(X)$: Marginal likelihood
+
+```{r}
+# Simple Bayesian example: Estimating proportion
+# Using Beta-Binomial conjugate prior
+library(ggplot2)
+
+# Prior: Beta(2,2) - weakly informative
+# Data: 8 successes in 10 trials
+alpha_prior <- 2
+beta_prior <- 2
+successes <- 8
+trials <- 10
+
+# Posterior: Beta(alpha_prior + successes, beta_prior + failures)
+alpha_post <- alpha_prior + successes
+beta_post <- beta_prior + (trials - successes)
+
+# Plot prior and posterior
+theta <- seq(0, 1, length.out = 100)
+prior_dens <- dbeta(theta, alpha_prior, beta_prior)
+post_dens <- dbeta(theta, alpha_post, beta_post)
+
+plot_data <- data.frame(
+  theta = rep(theta, 2),
+  density = c(prior_dens, post_dens),
+  distribution = rep(c("Prior", "Posterior"), each = length(theta))
+)
+
+ggplot(plot_data, aes(x = theta, y = density, color = distribution)) +
+  geom_line(linewidth = 1) +
+  labs(title = "Bayesian Update: Prior to Posterior",
+       x = "Probability of Success",
+       y = "Density") +
+  theme_minimal()
+```
+
+**Advantages**
+
+* Incorporates prior knowledge
+
+* Provides intuitive probability statements about parameters
+
+* Handles complex models through computational methods
+
+
+#. Resampling Methods
+
+Resampling methods use repeated sampling from the original data to make statistical inferences, particularly useful when theoretical distributions are unknown or assumptions are violated.
+
+
+**Bootstrap**
+
+The bootstrap method involves repeatedly sampling with replacement from the original data to estimate the sampling distribution of a statistic.
+
+```{r}
+# Bootstrap confidence interval for mean
+set.seed(123)
+bootstrap_means <- replicate(1000, {
+  bootstrap_sample <- sample(sample_data, size = length(sample_data), replace = TRUE)
+  mean(bootstrap_sample)
+})
+
+bootstrap_ci <- quantile(bootstrap_means, c(0.025, 0.975))
+cat("Bootstrap 95% CI: [", round(bootstrap_ci[1], 2), ",", round(bootstrap_ci[2], 2), "]")
+
+# Plot bootstrap distribution
+hist(bootstrap_means, breaks = 30, main = "Bootstrap Distribution of Means",
+     xlab = "Sample Means", col = "lightblue", border = "white")
+abline(v = bootstrap_ci, col = "red", lty = 2, lwd = 2)
+abline(v = point_estimate, col = "blue", lwd = 2)
+legend("topright", legend = c("Bootstrap CI", "Point Estimate"), 
+       col = c("red", "blue"), lty = c(2, 1), lwd = 2)
+```
+
+
+**Cross-Validation**
+
+Used primarily for model assessment and selection by partitioning data into training and validation sets.
+
+
+# Conclusion
+
+Statistical inference provides the mathematical foundation for drawing conclusions from data in the presence of uncertainty. Each major inference approach has its strengths and appropriate applications:
+
+* Point estimation provides single-value summaries
+
+* Confidence intervals quantify uncertainty around estimates
+
+* Hypothesis testing evaluates specific claims about parameters
+
+* Bayesian inference incorporates prior knowledge and provides probabilistic interpretations
+
+* Resampling methods provide flexible computational approaches
+
+
+The choice of inference method depends on the research question, data characteristics, and underlying assumptions that can be reasonably made about the population.
+
+
+
+
+
