@@ -1,0 +1,606 @@
+---
+title: "Nonparemtric Distribution and Bootstrap Sampling"
+author: "Cheng Peng"
+date: "West Chester University"
+output:
+  html_document: 
+    toc: yes
+    toc_depth: 4
+    toc_float: yes
+    number_sections: yes
+    toc_collapsed: yes
+    code_folding: show
+    code_download: yes
+    smooth_scroll: yes
+    theme: lumen
+  pdf_document: 
+    toc: yes
+    toc_depth: 4
+    fig_caption: yes
+    number_sections: yes
+    fig_width: 3
+    fig_height: 3
+  word_document: 
+    toc: yes
+    toc_depth: 4
+    fig_caption: yes
+    keep_md: yes
+editor_options: 
+  chunk_output_type: inline
+---
+
+```{css, echo = FALSE}
+#TOC::before {
+  content: "Table of Contents";
+  font-weight: bold;
+  font-size: 1.2em;
+  display: block;
+  color: navy;
+  margin-bottom: 10px;
+}
+
+
+div#TOC li {     /* table of content  */
+    list-style:upper-roman;
+    background-image:none;
+    background-repeat:none;
+    background-position:0;
+}
+
+h1.title {    /* level 1 header of title  */
+  font-size: 22px;
+  font-weight: bold;
+  color: DarkRed;
+  text-align: center;
+  font-family: "Gill Sans", sans-serif;
+}
+
+h4.author { /* Header 4 - and the author and data headers use this too  */
+  font-size: 15px;
+  font-weight: bold;
+  font-family: system-ui;
+  color: navy;
+  text-align: center;
+}
+
+h4.date { /* Header 4 - and the author and data headers use this too  */
+  font-size: 18px;
+  font-weight: bold;
+  font-family: "Gill Sans", sans-serif;
+  color: DarkBlue;
+  text-align: center;
+}
+
+h1 { /* Header 1 - and the author and data headers use this too  */
+    font-size: 20px;
+    font-weight: bold;
+    font-family: "Times New Roman", Times, serif;
+    color: darkred;
+    text-align: center;
+}
+
+h2 { /* Header 2 - and the author and data headers use this too  */
+    font-size: 18px;
+    font-weight: bold;
+    font-family: "Times New Roman", Times, serif;
+    color: navy;
+    text-align: left;
+}
+
+h3 { /* Header 3 - and the author and data headers use this too  */
+    font-size: 16px;
+    font-weight: bold;
+    font-family: "Times New Roman", Times, serif;
+    color: navy;
+    text-align: left;
+}
+
+h4 { /* Header 4 - and the author and data headers use this too  */
+    font-size: 14px;
+  font-weight: bold;
+    font-family: "Times New Roman", Times, serif;
+    color: darkred;
+    text-align: left;
+}
+
+/* Add dots after numbered headers */
+.header-section-number::after {
+  content: ".";
+
+body { background-color:white; }
+
+.highlightme { background-color:yellow; }
+
+p { background-color:white; }
+
+}
+```
+
+```{r setup, include=FALSE}
+# code chunk specifies whether the R code, warnings, and output 
+# will be included in the output files.
+if (!require("knitr")) {
+   install.packages("knitr")
+   library(knitr)
+}
+if (!require("pander")) {
+   install.packages("pander")
+   library(pander)
+}
+if (!require("ggplot2")) {
+  install.packages("ggplot2")
+  library(ggplot2)
+}
+if (!require("tidyverse")) {
+  install.packages("tidyverse")
+  library(tidyverse)
+}
+
+if (!require("plotly")) {
+  install.packages("plotly")
+  library(plotly)
+}
+if (!require("fitdistrplus")) {
+  install.packages("fitdistrplus")
+  library(fitdistrplus)
+}
+## library(fitdistrplus)
+knitr::opts_chunk$set(echo = TRUE,       # include code chunk in the output file
+                      warning = FALSE,   # sometimes, you code may produce warning messages,
+                                         # you can choose to include the warning messages in
+                                         # the output file. 
+                      results = TRUE,    # you can also decide whether to include the output
+                                         # in the output file.
+                      message = FALSE,
+                      comment = NA
+                      )  
+```
+
+\
+
+# Introduction
+
+This module focuses on non-parametric distribution and sampling from the non-parametric (empirical) distribution. The goal is to use samples taken from empirical distribution to approximate the sampling distributions of estimated parameters such as sample meansn standard deviations, correlation coefficients, etc.
+
+**Parametric vs. Nonparametric Approaches**
+
+* **Parametric**: Assume data follows specific distribution with known probability distribution function (e.g., normal, exponential)
+* **Nonparametric**: Make minimal assumptions about underlying distribution
+
+**Key advantage**: Flexibility in modeling real-world data that often violates parametric assumptions
+
+We will explain how to estimate an unknown **cumulative (probability) distribution function (CDF)** based on random sample taken from that population and how to repeated taken random sample of the **estimated cumulative (probability) distribution function (ECDF)**. The later is commonly called empirical cumulative distribution function (ECDF).
+
+* **Empirical Distribution Function (EDF)**
+* **Bootstrap Sampling from EDF**
+* **Practical implementation in R**
+
+
+
+
+#  Empirical Distribution Function (EDF)
+
+**Mathematical Definition**
+
+For a sample $X_1, X_2, \ldots, X_n$, the EDF $\hat{F}_n(x)$ is:
+
+$$
+\hat{F}_n(x) = \widehat{P}(X < x) = \frac{1}{n} \sum_{i=1}^n I(X_i \leq x) = \frac{ \# [ \text{ (data values}) < x]}{n}
+$$
+
+where $I(\cdot)$ is the indicator function.
+
+**Example** Consider the distribution of customer waiting time at a restaurant. We randomly selected customers and recorded their waiting times (in minute) $ \mathbf{X} =\{2, 5, 10, 12, 15, 20, 35 \}$. 
+
+We plot relative frequency histogram and cumulative relative frequency histogram in the following.
+
+
+```{r fig.align='center', fig.height=5, fig.width=8}
+XX = c(2, 5, 10, 12, 15, 20, 35 )
+par(mfrow = c(1,2))
+# Method 1: Using hist() with cumulative = TRUE
+h0 <- hist(XX, breaks = 8, freq = FALSE, plot = FALSE)
+h0$counts <- h0$counts/sum(h0$counts)   # relative frequency
+##
+plot(h0, 
+     col = "skyblue",
+     ylim=c(0,1),
+     main = "Relative Freq Histogram",
+     xlab = "Waiting Time",
+     ylab = "Relative Frequency")
+
+##
+h <- hist(XX, breaks = 8, freq = FALSE, plot = FALSE)
+h$counts <- cumsum(h$counts)/sum(h$counts)  # cumulative relative frequency
+plot(h, 
+     col = "skyblue",
+     ylim=c(0,1),
+     main = "Cumulative Relative Freq. Histogram",
+     xlab = "Waiting Time",
+     ylab = "Relative Cumulative Frequency")
+```
+
+The 
+
+
+
+
+**Properties**
+
+* Step function with jumps of size $1/n$ at each observation
+* Consistent estimator: $\hat{F}_n(x) \to F(x)$ as $n \to \infty$ (Glivenko-Cantelli theorem)
+* Nonparametric maximum likelihood estimator
+
+
+**Algorithm for Constructing EDF**
+
+* **Sort** observations: $x_{(1)} \leq x_{(2)} \leq \ldots \leq x_{(n)}$
+* **Initialize** $\hat{F}_n(x) = 0$ for $x < x_{(1)}$
+* **For** each $i = 1, \ldots, n-1$:
+   + $\hat{F}_n(x) = i/n$ for $x_{(i)} \leq x < x_{(i+1)}$
+
+* **Set** $\hat{F}_n(x) = 1$ for $x \geq x_{(n)}$
+
+
+**Pseudo-code**
+
+```
+function empirical_cdf(data, x_values):
+    # Input: data (array of n observations), x_values (points to evaluate)
+    # Output: Fn values at x_values
+    
+    sorted_data = sort(data)
+    n = length(data)
+    Fn = empty_array(length(x_values))
+    
+    for j in 1:length(x_values):
+        x = x_values[j]
+        count = 0
+        for i in 1:n:
+            if sorted_data[i] <= x:
+                count = count + 1
+        Fn[j] = count / n
+    
+    return Fn
+```
+
+
+# Bootstrap Sampling Distribution
+
+**The Bootstrap Principle**
+
+* **Idea**: Use the EDF $\hat{F}_n$ as an approximation to the true $F$
+* **Bootstrap world**: Sampling from $\hat{F}_n$ $\approx$ sampling from $F$ in real world
+* **Key insight**: Resample from the observed data with replacement
+
+
+**Mathematical Algorithm**
+
+Given data $X = (X_1, \ldots, X_n)$ and statistic $T(X)$:
+
+* **Compute** $t_{\text{obs}} = T(X)$ from original sample
+* **For** $b = 1$ to $B$ ($B =$ number of bootstrap samples):
+  + Draw $X^*_1, \ldots, X^*_n \sim \hat{F}_n$ (i.i.d.)
+  + Compute $t^*_b = T(X^*)$
+
+* **Bootstrap distribution**: $\{t^*_1, \ldots, t^*_B\}$
+* **Estimate** standard error, confidence intervals, bias, etc.
+
+
+**Sampling from EDF**
+
+Sampling from $\hat{F}_n$ is equivalent to:
+
+* Generate $U \sim \text{Uniform}\{1, 2, \ldots, n\}$
+* Return $X_{(U)}$
+ 
+
+**Pseudo-code for Bootstrap**
+
+```
+function bootstrap(data, statistic, B):
+    # Input: data (array), statistic (function), B (number of bootstrap samples)
+    # Output: bootstrap distribution
+    
+    n = length(data)
+    t_obs = statistic(data)
+    bootstrap_dist = empty_array(B)
+    
+    for b in 1:B:
+        # Resample with replacement
+        indices = sample(1:n, n, replace=TRUE)
+        bootstrap_sample = data[indices]
+        bootstrap_dist[b] = statistic(bootstrap_sample)
+    
+    return list(observed=t_obs, distribution=bootstrap_dist)
+```
+
+# Numerical Examples in R
+
+**Example 1**: Empirical Distribution Function}
+
+```{r}
+# Generate some non-normal data
+set.seed(123)
+data <- rexp(50, rate = 0.5)  # Exponential distribution
+
+# Method 1: Using base R ecdf() function
+Fn <- ecdf(data)
+
+# Plot the EDF
+par(mfrow = c(1, 2))
+plot(Fn, main = "Empirical CDF", 
+     xlab = "x", ylab = "F_n(x)",
+     col = "blue", lwd = 2)
+
+# Add theoretical CDF for comparison
+curve(pexp(x, rate = 0.5), add = TRUE, 
+      col = "red", lty = 2, lwd = 2)
+legend("bottomright", 
+       legend = c("Empirical", "Theoretical"),
+       col = c("blue", "red"), lty = c(1, 2))
+
+# Method 2: Manual implementation
+manual_ecdf <- function(data, x) {
+  n <- length(data)
+  sapply(x, function(x_val) sum(data <= x_val) / n)
+}
+
+# Evaluate at specific points
+x_vals <- seq(0, 8, length.out = 100)
+Fn_vals <- manual_ecdf(data, x_vals)
+
+# Compare with built-in function
+plot(x_vals, Fn_vals, type = "s", 
+     main = "Manual EDF Implementation",
+     xlab = "x", ylab = "F_n(x)", col = "darkgreen", lwd = 2)
+points(x_vals, Fn(x_vals), type = "s", 
+       col = "orange", lty = 2, lwd = 1)
+legend("bottomright", 
+       legend = c("Manual", "ecdf() function"),
+       col = c("darkgreen", "orange"), lty = c(1, 2))
+```
+
+
+**Example 2**: Bootstrap for Mean Estimation}
+
+```{r}
+# Generate skewed data
+set.seed(456)
+population <- rgamma(1000, shape = 2, rate = 1)  # True mean = 2
+sample_data <- sample(population, 30)  # Take a small sample
+
+# Bootstrap function for mean
+bootstrap_mean <- function(data, B = 10000) {
+  n <- length(data)
+  original_mean <- mean(data)
+  bootstrap_means <- numeric(B)
+  
+  for (i in 1:B) {
+    # Sample from empirical distribution (resample with replacement)
+    bootstrap_sample <- sample(data, n, replace = TRUE)
+    bootstrap_means[i] <- mean(bootstrap_sample)
+  }
+  
+  return(list(
+    original = original_mean,
+    bootstrap_dist = bootstrap_means,
+    bias = mean(bootstrap_means) - original_mean,
+    se = sd(bootstrap_means),
+    ci = quantile(bootstrap_means, c(0.025, 0.975))
+  ))
+}
+
+# Run bootstrap
+results <- bootstrap_mean(sample_data, B = 5000)
+
+# Display results
+cat("Original sample mean:", round(results$original, 3), "\n")
+cat("Bootstrap bias:", round(results$bias, 4), "\n")
+cat("Bootstrap standard error:", round(results$se, 3), "\n")
+cat("95% Bootstrap CI: [", 
+    round(results$ci[1], 3), ", ", 
+    round(results$ci[2], 3), "]\n", sep = "")
+```
+
+```{r}
+# Plot bootstrap distribution
+par(mfrow = c(1, 2))
+
+# Histogram of bootstrap distribution
+hist(results$bootstrap_dist, breaks = 30, 
+     main = "Bootstrap Distribution of Mean",
+     xlab = "Sample Mean", col = "lightblue",
+     probability = TRUE)
+abline(v = results$original, col = "red", lwd = 2)
+abline(v = mean(population), col = "darkgreen", lwd = 2, lty = 2)
+legend("topright", 
+       legend = c("Sample Mean", "Population Mean"),
+       col = c("red", "darkgreen"), lty = c(1, 2))
+
+# Q-Q plot to assess normality
+qqnorm(results$bootstrap_dist, main = "Normal Q-Q Plot")
+qqline(results$bootstrap_dist, col = "red")
+```
+
+
+**Example 3**: Bootstrap for Correlation
+
+```{r}
+# Generate correlated data
+set.seed(789)
+n <- 40
+true_rho <- 0.7
+x <- rnorm(n)
+y <- true_rho * x + sqrt(1 - true_rho^2) * rnorm(n)
+data_corr <- data.frame(x, y)
+
+# Bootstrap correlation coefficient
+bootstrap_correlation <- function(data, B = 10000) {
+  n <- nrow(data)
+  original_cor <- cor(data$x, data$y)
+  bootstrap_cors <- numeric(B)
+  
+  for (i in 1:B) {
+    # Resample pairs (rows) to preserve correlation structure
+    indices <- sample(1:n, n, replace = TRUE)
+    bootstrap_sample <- data[indices, ]
+    bootstrap_cors[i] <- cor(bootstrap_sample$x, bootstrap_sample$y)
+  }
+  
+  # Bias-corrected accelerated (BCa) confidence interval
+  z0 <- qnorm(mean(bootstrap_cors < original_cor))
+  
+  # Jackknife for acceleration
+  jack_cors <- numeric(n)
+  for (j in 1:n) {
+    jack_cors[j] <- cor(data$x[-j], data$y[-j])
+  }
+  a <- sum((mean(jack_cors) - jack_cors)^3) / 
+       (6 * sum((mean(jack_cors) - jack_cors)^2)^(3/2))
+  
+  # BCa percentiles
+  alpha <- 0.05
+  z_alpha <- qnorm(alpha/2)
+  z_1alpha <- qnorm(1 - alpha/2)
+  
+  p1 <- pnorm(z0 + (z0 + z_alpha) / (1 - a * (z0 + z_alpha)))
+  p2 <- pnorm(z0 + (z0 + z_1alpha) / (1 - a * (z0 + z_1alpha)))
+  
+  ci_bca <- quantile(bootstrap_cors, c(p1, p2))
+  
+  return(list(
+    original = original_cor,
+    bootstrap_dist = bootstrap_cors,
+    se = sd(bootstrap_cors),
+    ci_percentile = quantile(bootstrap_cors, c(0.025, 0.975)),
+    ci_bca = ci_bca
+  ))
+}
+
+# Run bootstrap
+cor_results <- bootstrap_correlation(data_corr, B = 5000)
+
+# Display results
+cat("Original correlation:", round(cor_results$original, 3), "\n")
+cat("Standard error:", round(cor_results$se, 3), "\n")
+cat("95% Percentile CI: [", 
+    round(cor_results$ci_percentile[1], 3), ", ", 
+    round(cor_results$ci_percentile[2], 3), "]\n", sep = "")
+cat("95% BCa CI: [", 
+    round(cor_results$ci_bca[1], 3), ", ", 
+    round(cor_results$ci_bca[2], 3), "]\n", sep = "")
+```
+
+```{r}
+# Visualization
+par(mfrow = c(1, 2))
+plot(x, y, main = "Original Data", pch = 19, col = "blue",
+     xlab = "X", ylab = "Y")
+abline(lm(y ~ x), col = "red", lwd = 2)
+
+hist(cor_results$bootstrap_dist, breaks = 30, 
+     main = "Bootstrap Distribution\nof Correlation",
+     xlab = "Correlation Coefficient", col = "lightgreen",
+     probability = TRUE, xlim = c(0, 1))
+abline(v = cor_results$original, col = "red", lwd = 2)
+abline(v = true_rho, col = "darkblue", lwd = 2, lty = 2)
+legend("topright", 
+       legend = c("Sample Correlation", "True Correlation"),
+       col = c("red", "darkblue"), lty = c(1, 2))
+```
+
+
+**Example 4**: Using boot Package
+
+```{r}
+# Using the boot package for more sophisticated analyses
+library(boot)
+
+# Define statistic function
+mean_stat <- function(data, indices) {
+  d <- data[indices]  # Allows boot to select resamples
+  return(mean(d))
+}
+
+# Run bootstrap using boot()
+set.seed(123)
+sample_data <- rgamma(25, shape = 2, rate = 1)
+boot_results <- boot(sample_data, statistic = mean_stat, R = 5000)
+
+# Basic bootstrap
+print(boot_results)
+plot(boot_results)
+
+# Confidence intervals
+boot.ci(boot_results, type = c("norm", "basic", "perc", "bca"))
+
+# Compare different methods
+cat("\nComparison of Confidence Intervals:\n")
+ci_norm <- boot.ci(boot_results, type = "norm")$normal[2:3]
+ci_basic <- boot.ci(boot_results, type = "basic")$basic[4:5]
+ci_perc <- boot.ci(boot_results, type = "perc")$perc[4:5]
+ci_bca <- boot.ci(boot_results, type = "bca")$bca[4:5]
+
+ci_matrix <- rbind(
+  "Normal" = ci_norm,
+  "Basic" = ci_basic,
+  "Percentile" = ci_perc,
+  "BCa" = ci_bca
+)
+colnames(ci_matrix) <- c("Lower", "Upper")
+print(ci_matrix)
+```
+
+
+# Practical Considerations
+
+**When to Use Bootstrap**
+
+* Small to moderate sample sizes
+* Complex statistics without known sampling distribution
+* Assessment of estimator variability
+* Bias estimation and correction
+ 
+
+**Limitations and Caveats**
+
+* **Sample representativeness**: Bootstrap assumes sample represents population
+* **Small samples**: May perform poorly with $n < 20$
+* **Heavy-tailed distributions**: May require more bootstrap replications
+* **Dependence structure**: Requires modification for time series/spatial data
+* **Boundary issues**: Problems with statistics near boundaries
+
+
+**Choosing Number of Bootstrap Samples ($B$)**
+
+* **Standard errors**: $B \geq 200$ often sufficient
+* **Confidence intervals**: $B \geq 1000$ recommended
+* **BCa intervals**: $B \geq 5000$ for stable results
+* **Percentile methods**: Larger $B$ for accurate tail estimation
+
+
+
+# Summary
+
+**Key Takeaways**
+
+* **Empirical Distribution Function** provides nonparametric estimate of CDF
+* **Bootstrap** samples from EDF to approximate sampling distribution
+* **Implementation in R** is straightforward with **sample()** or **{boot}** package
+* **Applications** include standard error estimation, confidence intervals, bias correction
+* **Multiple methods** exist (percentile, BCa) with different properties
+ 
+**Practice Exercise**
+
+* Implement a bootstrap procedure for median estimation
+* Compare bootstrap standard errors with asymptotic approximations
+* Investigate how bootstrap performance changes with sample size using simulation
+* Apply bootstrap to a real dataset of your choice
+
+
+```{r}
+# Starter code for exercise
+exercise_data <- rlnorm(30, meanlog = 0, sdlog = 1)  # Log-normal data
+# Your bootstrap implementation for median here...
+```

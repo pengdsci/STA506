@@ -1,0 +1,553 @@
+---
+title: "Maximum Likelihood Estimation (MLE)"
+author: "Cheng Peng"
+date: "West Chester University"
+output:
+  html_document: 
+    toc: yes
+    toc_depth: 4
+    toc_float: yes
+    number_sections: yes
+    toc_collapsed: yes
+    code_folding: show
+    code_download: yes
+    smooth_scroll: yes
+    highlight: monochrome
+    theme: spacelab
+  pdf_document: 
+    toc: yes
+    toc_depth: 4
+    fig_caption: yes
+    number_sections: yes
+    fig_width: 3
+    fig_height: 3
+  word_document: 
+    toc: yes
+    toc_depth: 4
+    fig_caption: yes
+    keep_md: yes
+editor_options: 
+  chunk_output_type: inline
+---
+
+```{css, echo = FALSE}
+#TOC::before {
+  content: "Table of Contents";
+  font-weight: bold;
+  font-size: 1.2em;
+  display: block;
+  color: navy;
+  margin-bottom: 10px;
+}
+
+
+div#TOC li {     /* table of content  */
+    list-style:upper-roman;
+    background-image:none;
+    background-repeat:none;
+    background-position:0;
+}
+
+h1.title {    /* level 1 header of title  */
+  font-size: 22px;
+  font-weight: bold;
+  color: DarkRed;
+  text-align: center;
+  font-family: "Gill Sans", sans-serif;
+}
+
+h4.author { /* Header 4 - and the author and data headers use this too  */
+  font-size: 15px;
+  font-weight: bold;
+  font-family: system-ui;
+  color: navy;
+  text-align: center;
+}
+
+h4.date { /* Header 4 - and the author and data headers use this too  */
+  font-size: 18px;
+  font-weight: bold;
+  font-family: "Gill Sans", sans-serif;
+  color: DarkBlue;
+  text-align: center;
+}
+
+h1 { /* Header 1 - and the author and data headers use this too  */
+    font-size: 20px;
+    font-weight: bold;
+    font-family: "Times New Roman", Times, serif;
+    color: darkred;
+    text-align: center;
+}
+
+h2 { /* Header 2 - and the author and data headers use this too  */
+    font-size: 18px;
+    font-weight: bold;
+    font-family: "Times New Roman", Times, serif;
+    color: navy;
+    text-align: left;
+}
+
+h3 { /* Header 3 - and the author and data headers use this too  */
+    font-size: 16px;
+    font-weight: bold;
+    font-family: "Times New Roman", Times, serif;
+    color: navy;
+    text-align: left;
+}
+
+h4 { /* Header 4 - and the author and data headers use this too  */
+    font-size: 14px;
+  font-weight: bold;
+    font-family: "Times New Roman", Times, serif;
+    color: darkred;
+    text-align: left;
+}
+
+/* Add dots after numbered headers */
+.header-section-number::after {
+  content: ".";
+
+body { background-color:white; }
+
+.highlightme { background-color:yellow; }
+
+p { background-color:white; }
+
+}
+```
+
+```{r setup, include=FALSE}
+# code chunk specifies whether the R code, warnings, and output 
+# will be included in the output files.
+if (!require("knitr")) {
+   install.packages("knitr")
+   library(knitr)
+}
+if (!require("pander")) {
+   install.packages("pander")
+   library(pander)
+}
+if (!require("ggplot2")) {
+  install.packages("ggplot2")
+  library(ggplot2)
+}
+if (!require("tidyverse")) {
+  install.packages("tidyverse")
+  library(tidyverse)
+}
+
+if (!require("plotly")) {
+  install.packages("plotly")
+  library(plotly)
+}
+if (!require("fitdistrplus")) {
+  install.packages("fitdistrplus")
+  library(fitdistrplus)
+}
+## library(fitdistrplus)
+knitr::opts_chunk$set(echo = TRUE,       # include code chunk in the output file
+                      warning = FALSE,   # sometimes, you code may produce warning messages,
+                                         # you can choose to include the warning messages in
+                                         # the output file. 
+                      results = TRUE,    # you can also decide whether to include the output
+                                         # in the output file.
+                      message = FALSE,
+                      comment = NA
+                      )  
+```
+
+\
+
+
+# Introduction
+
+In statistical inference, we often want to estimate unknown parameters of a probability distribution based on observed data. The likelihood function and maximum likelihood estimation (MLE) are fundamental concepts that provide a powerful framework for parameter estimation.
+
+# Likelihood Function
+
+Given a set of independent and identically distributed (i.i.d.) observations $\mathbf{x} = (x_1, x_2, \dots, x_n)$ from a probability distribution with probability density function (PDF) or probability mass function (PMF) $f(x|\theta)$, where $\theta$ is an unknown parameter, the likelihood function is defined as:
+
+$$
+L(\theta \mid x) = \prod_{i=1}^{n} f(x_i \mid \theta)
+$$
+
+The likelihood function measures how "likely" the parameter $\theta$ is, given the observed data $\mathbf{x}$. In other words, **likelihood function** is
+
+* not a probability about the data: We already have the data; it's fixed.
+
+* a function of the parameters: We use the data to make inferences about the unknown parameters.
+
+The likelihood function looks identical to the product of the probability mass or density function evaluated at each individual data point, but the interpretation is different. The function is the same, but what is varying and what is fixed is reversed.
+
+* In $\prod_{i=1}^n f(x | θ)$: θ is fixed, *x* varies. (Answer: "What is the probability of seeing different data points given a known parameter?")
+
+* In $L(θ | x)$: *x* is fixed, θ varies. (Answer: "How likely are different parameter values given my fixed, observed data?")
+
+
+For computational convenience, we often work with the log-likelihood function:
+
+$$
+\ell(\theta \mid x) = \log L(\theta \mid x) = \sum_{i=1}^{n} \log f(x_i \mid \theta)
+$$
+
+The logarithm transforms the product into a sum, which is easier to differentiate and optimize.
+
+
+# Maximum Likelihood Estimation
+
+The MLE method is incredibly intuitive: Find the parameter value that makes the observed data most probable. The idea originates from Ronald A. Fisher in a series of papers starting in the 1920s. The key paper is:
+
+Fisher, R.A. (1922). On the mathematical foundations of theoretical statistics. *Philosophical Transactions of the Royal Society of London*, Series A, 222, 309–368.
+
+In this paper, Fisher
+
+* Introduced the term likelihood (distinct from probability).
+
+* Proposed maximum likelihood as a general method for estimating parameters.
+
+* Explained that the most “reasonable” estimate of a parameter is the one that maximizes the likelihood of the observed data.
+
+
+
+## Likelihood Principle
+
+
+*All the evidence from an experiment about a model parameter $\theta$ is contained in the likelihood function. Furthermore, two likelihood functions that are proportional to each other (i.e., they differ only by a constant multiplicative factor) contain the same information about $\theta$.*
+
+
+This has two crucial implications:
+
+* **The only thing that matters is the data you actually observed**. The inference should not depend on data you might have observed but didn't (i.e., the sample space). Procedures like p-values, which are based on the sample space, violate the Likelihood Principle.
+
+* **The scaling of the likelihood function is irrelevant**. Since a constant multiplier doesn't change the location of the maximum or the ratios between different likelihoods, it doesn't affect inference.
+
+We will see that **MLE is a Direct Application of the Likelihood Principle!**
+
+Interestingly, Fisher introduced the likelihood function (measuring how well parameter values examplin observed data) and maximum likelihood estimation (MLE, estimating parameters by maximizing likelihood - i.e., making the observed most probable) in 1922. However, the likelihood principle was formalized by Birnbaum 1962.
+
+
+## Finding the MLE
+
+The maximum likelihood estimate (MLE) $\hat{\theta}_{MLE}$ is the value of $\theta$ that maximizes the likelihood function:
+
+
+$$
+\hat{\theta}_{\text{MLE}} = \arg\max_{\theta}  L(\theta \mid x) = \arg \max_{\theta} \ell(\theta \mid x)
+$$
+
+To find the MLE, we typically:
+
+* Write the likelihood function $L(\theta|\mathbf{x})$
+
+* Take the natural logarithm to get $\ell(\theta|\mathbf{x})$
+
+* Differentiate with respect to $\theta$
+
+* Set the derivative equal to zero
+
+* Solve for $\theta$
+
+The equation $\frac{\partial \ell(\theta|\mathbf{x})}{\partial \theta} = 0$ is called the likelihood equation.
+
+
+# Finding MLE with Examples
+
+We will use several examples to demonstrate the mathematical derivations of MLEs. Similar to the method of moment estimates, not all MLE have closed expressions. In many cases, numerical algorithms are required to find the approximation of the MLE of the unknown parameters.
+
+
+## MLE of Normal Mean and Variance
+
+Let $X_1, X_2, \dots, X_n \sim N(\mu, \sigma^2)$. Both $\mu$ and $\sigma^2$ are unknown. We will derive the MLE of $\mu$ and $\sigma^2$. We will divide the process into the following steps:
+
+**Step 1: Likelihood Function**: we first write the likelihood function of parameter based on the observed iid data.
+
+$$
+L(\mu \mid x) = \prod_{i=1}^{n} \frac{1}{\sqrt{2\pi\sigma^2}} 
+\exp\!\left(-\frac{(x_i - \mu)^2}{2\sigma^2}\right)
+$$
+
+
+**Step 2: Log-Likelihood Function**
+
+$$
+\ell(\mu \mid x) = -\frac{n}{2}\log(2\pi\sigma^2) 
+- \frac{1}{2\sigma^2}\sum_{i=1}^{n}(x_i - \mu)^2
+$$
+
+**Step 3: Differentiate and Set to Zero**: taking partial derivatives with respect to $\mu$ and $\sigma^2$ (not $\sigma$)
+
+
+$$
+\begin{align*}
+        \frac{\partial \ell}{\partial \mu} & =  \frac{1}{\sigma^2} \sum_{i=1}^{n} (x_i - \mu) = 0 \\
+        \frac{\partial \ell}{\partial \sigma^2}& =-\frac{n}{2\sigma^2} + \frac{1}{2(\sigma^2)^2} \sum_{i=1}^{n} (x_i - \mu)^2 = 0
+\end{align*}
+$$
+
+
+**Step 4; Solve The System for MLE**
+
+$$
+\begin{align*}
+        \hat{\mu}_{MLE} & =  \frac{1}{n} \sum_{i=1}^{n} x_i = \bar{x}   \\
+        \hat{\sigma}_{MLE}^2 & = \frac{1}{n} \sum_{i=1}^{n} (x_i - \bar{x})^2
+\end{align*}
+$$
+
+
+## MLE of Weibull Paramters
+
+The Weibull distribution is defined by the probability density function (PDF):
+
+$$
+\begin{equation}
+    f(t; \lambda, k) = 
+    \begin{cases}
+        \frac{k}{\lambda} \left( \frac{t}{\lambda} \right)^{k-1} \exp\left[-\left( \frac{t}{\lambda} \right)^k \right], & t \geq 0 \\
+        0, & t < 0
+    \end{cases}
+\end{equation}
+$$
+
+where $k > 0$ is the **shape** parameter and $\lambda > 0$ is the **scale** parameter.
+
+**Likelihood Function**
+
+Given an independent and identically distributed (i.i.d.) sample $\mathbf{t} = (t_1, t_2, \dots, t_n)$, the likelihood function is the product of the individual densities:
+
+$$
+\begin{align}
+    L(k, \lambda; \mathbf{t}) &= \prod_{i=1}^{n} f(t_i; \lambda, k) \\
+    &= \prod_{i=1}^{n} \left[ \frac{k}{\lambda} \left( \frac{t_i}{\lambda} \right)^{k-1} \exp\left( -\left( \frac{t_i}{\lambda} \right)^k \right) \right]
+\end{align}
+$$
+
+
+**Log-Likelihood Function**
+
+It is easier to work with the log-likelihood function:
+
+$$
+\begin{align}
+    \ell(k, \lambda; \mathbf{t}) &= \ln L(k, \lambda; \mathbf{t}) \\
+    &= \sum_{i=1}^{n} \ln \left[ \frac{k}{\lambda} \left( \frac{t_i}{\lambda} \right)^{k-1} \exp\left( -\left( \frac{t_i}{\lambda} \right)^k \right) \right] \\
+    &= \sum_{i=1}^{n} \left[ \ln k - \ln \lambda + (k-1)(\ln t_i - \ln \lambda) - \left( \frac{t_i}{\lambda} \right)^k \right] \\
+    &= \sum_{i=1}^{n} \left[ \ln k - k \ln \lambda + (k-1) \ln t_i - \left( \frac{t_i}{\lambda} \right)^k \right]
+\end{align}
+$$
+
+Simplifying further:
+
+$$
+\begin{equation}
+    \ell(k, \lambda) = n \ln k - n k \ln \lambda + (k-1) \sum_{i=1}^{n} \ln t_i - \lambda^{-k} \sum_{i=1}^{n} t_i^k
+\end{equation}
+$$
+
+**Maximum Likelihood Estimation**
+
+To find the MLEs $(\hat{k}, \hat{\lambda})$, we take partial derivatives with respect to $\lambda$ and $k$, set them to zero, and solve the resulting system of equations.
+
+
+First, differentiate with respect to $\lambda$:
+
+$$
+\begin{align}
+    \frac{\partial \ell}{\partial \lambda} &= \frac{\partial}{\partial \lambda} \left[ -n k \ln \lambda - \lambda^{-k} \sum_{i=1}^{n} t_i^k \right] \\
+    &= -n k \frac{1}{\lambda} + k \lambda^{-k-1} \sum_{i=1}^{n} t_i^k
+\end{align}
+$$
+
+Set the derivative to zero:
+
+$$
+\begin{align}
+    \frac{\partial \ell}{\partial \lambda} = 0 &\Rightarrow -n k \frac{1}{\lambda} + k \lambda^{-k-1} \sum_{i=1}^{n} t_i^k = 0 \\
+    &\Rightarrow -n + \lambda^{-k} \sum_{i=1}^{n} t_i^k = 0 \\
+    &\Rightarrow \lambda^{-k} \sum_{i=1}^{n} t_i^k = n \\
+    &\Rightarrow \lambda^k = \frac{1}{n} \sum_{i=1}^{n} t_i^k
+\end{align}
+$$
+
+
+Thus, we obtain the MLE for $\lambda$ in terms of $k$:
+
+$$
+\begin{equation}
+    \hat{\lambda} = \left( \frac{1}{n} \sum_{i=1}^{n} t_i^{\hat{k}} \right)^{1/\hat{k}}
+\end{equation}
+$$
+
+Now differentiate with respect to $k$:
+
+$$
+\begin{align}
+    \frac{\partial \ell}{\partial k} &= \frac{\partial}{\partial k} \left[ n \ln k - n k \ln \lambda + (k-1) \sum_{i=1}^{n} \ln t_i - \lambda^{-k} \sum_{i=1}^{n} t_i^k \right] \\
+    &= \frac{n}{k} - n \ln \lambda + \sum_{i=1}^{n} \ln t_i + \lambda^{-k} \ln \lambda \sum_{i=1}^{n} t_i^k - \lambda^{-k} \sum_{i=1}^{n} (t_i^k \ln t_i)
+\end{align}
+$$
+
+
+Set this derivative to zero and substitute $\lambda^k = \frac{1}{n} \sum_{i=1}^{n} t_i^k$:
+
+$$
+\begin{align}
+    \frac{\partial \ell}{\partial k} = 0 &\Rightarrow \frac{n}{k} - n \ln \lambda + \sum_{i=1}^{n} \ln t_i + \lambda^{-k} \ln \lambda \sum_{i=1}^{n} t_i^k - \lambda^{-k} \sum_{i=1}^{n} (t_i^k \ln t_i) = 0
+\end{align}
+$$
+
+
+Using $\lambda^{-k} \sum_{i=1}^{n} t_i^k = n$ from previous equation:
+
+$$
+\begin{align}
+    &\Rightarrow \frac{n}{k} - n \ln \lambda + \sum_{i=1}^{n} \ln t_i + n \ln \lambda - \lambda^{-k} \sum_{i=1}^{n} (t_i^k \ln t_i) = 0 \\
+    &\Rightarrow \frac{n}{k} + \sum_{i=1}^{n} \ln t_i - \lambda^{-k} \sum_{i=1}^{n} (t_i^k \ln t_i) = 0
+\end{align}
+$$
+
+Substitute $\lambda^{-k} = \frac{n}{\sum_{i=1}^{n} t_i^k}$:
+
+$$
+\begin{equation}
+    \frac{n}{k} + \sum_{i=1}^{n} \ln t_i - \frac{n \sum_{i=1}^{n} (t_i^k \ln t_i)}{\sum_{i=1}^{n} t_i^k} = 0
+\end{equation}
+$$
+
+
+Rearranging terms:
+
+$$
+\begin{equation}
+    \frac{1}{k} = \frac{\sum_{i=1}^{n} (t_i^k \ln t_i)}{\sum_{i=1}^{n} t_i^k} - \frac{1}{n} \sum_{i=1}^{n} \ln t_i
+\end{equation}
+$$
+
+The MLEs $(\hat{k}, \hat{\lambda})$ are the solution to the following system:
+
+$$
+\begin{align}
+    \hat{\lambda} &= \left( \frac{1}{n} \sum_{i=1}^{n} t_i^{\hat{k}} \right)^{1/\hat{k}} \quad \cdots\cdots\cdots\cdots\cdots\cdots\quad\text{(A)}\\
+    \frac{1}{\hat{k}} &= \frac{\sum_{i=1}^{n} (t_i^{\hat{k}} \ln t_i)}{\sum_{i=1}^{n} t_i^{\hat{k}}} - \frac{1}{n} \sum_{i=1}^{n} \ln t_i \quad \cdots\cdots\quad\text{(B)}
+\end{align}
+$$
+
+**Numerical Solution**
+
+This system cannot be solved analytically. The typical numerical procedure is:
+
+
+* Solve equation (B) for $\hat{k}$ using numerical methods (e.g., Newton-Raphson, bisection)
+
+* Substitute $\hat{k}$ into equation (A) to obtain $\hat{\lambda}$
+
+
+
+The right-hand side of equation (24) is often denoted as $g(k)$:
+
+$$
+\begin{equation}
+    g(k) = \frac{\sum_{i=1}^{n} (t_i^k \ln t_i)}{\sum_{i=1}^{n} t_i^k} - \frac{1}{n} \sum_{i=1}^{n} \ln t_i
+\end{equation}
+$$
+
+
+and we solve $g(k) - 1/k = 0$ iteratively.
+
+
+# Numerical Implementation Using R
+
+
+If the MLE has a closed form, the evaluation of the MLE is straightforward. If there is no closed form for the MLE, we need to use numerical procedures to approximate it. We will use a simulated Weibull distribution with a given shape ($k = 2.5$) and scale ($\lambda = 1.8$) and then find MLE of $k$ and $\lambda$, denoted by $\hat{k}$ and $\hat{\lambda}$.
+
+Since the Weibull distribution is widely used in practice, there is a generic built-in R function `fitdistr()` in the MASS library for estimating parameters in distributions such as `beta`, `cauchy`, `chi-squared`, `exponential`, `gamma`, `geometric`, `log-normal`, `lognormal`, `logistic`, `negative binomial`, `normal`, `Poisson`, `t` and `weibull`.
+
+We will use `fitdistr()` and manual calculation is a generic `optim()` based on the derived log-likelihood and score functions to find the MLE of $k$ and $\lambda$.
+
+## Estimation with `fitdistr()`
+
+`fitdistr()` uses  Maximum-likelihood fitting of univariate distributions, allowing parameters to be held fixed if desired.
+
+
+```{r message = FALSE, warning = FALSE}
+# Generate sample Weibull data
+set.seed(123)
+true.shape <- 2.5
+true.scale <- 1.8
+sample.data <- rweibull(1000, shape = true.shape, scale = true.scale)
+
+# Using fitdistr from MASS package
+weibull.fit.mass <- fitdistr(sample.data, "weibull")
+#print("MASS::fitdistr results:")
+print(weibull.fit.mass)
+```
+
+
+**Note** R function `fitdist()` in library **fitdistrplus** package allows various estimation methods including method of moment estimation and maximum likelihood estimation.
+
+
+## Manual Implementation of MLE
+
+The following code implements the MLE from the objective function directly. The process of finding the MLE of population parameters applies to any new distributions that are not available in existing R libraries. The key optimization R function to be used is `optim()` in the base package.
+
+
+```{r}
+# Manual MLE implementation for Weibull distribution
+# Weibull log-likelihood function
+weibull.loglik <- function(params, data) {
+  shape <- params[1]
+  scale <- params[2]
+  
+  n <- length(data)
+  
+  # Log-likelihood for Weibull distribution
+  loglik <- n * log(shape) - n * shape * log(scale) + 
+            (shape - 1) * sum(log(data)) - 
+            sum((data / scale)^shape)
+  
+  return(-loglik)  # Return negative for minimization
+}
+
+# Alternative parameterization (often more stable)
+weibull.loglik.alt <- function(params, data) {
+  k <- params[1]  # shape
+  lambda <- params[2]  # scale
+  
+  if (k <= 0 | lambda <= 0) return(1e10)  # Penalize invalid parameters
+  
+  n <- length(data)
+  term1 <- n * log(k) - n * k * log(lambda)
+  term2 <- (k - 1) * sum(log(data))
+  term3 <- -sum((data / lambda)^k)
+  
+  return(-(term1 + term2 + term3))  # Negative log-likelihood
+}
+
+# Perform optimization
+initial.params <- c(shape = 2.2, scale = 1.5)  # Reasonable starting values
+
+# Using optim with Nelder-Mead method
+mle.result <- optim(
+  par = initial.params,
+  fn = weibull.loglik,
+  data = sample.data,
+  #method = "Nelder-Mead",
+  hessian = TRUE
+)
+##
+mle.result
+```
+
+**Remarks**: `optim()` is a powerful optimization function. While the previous implementation relies solely on the log-likelihood function, real-world scenarios often involve likelihood functions with numerous parameters and complex expressions. In such cases, gradient-based methods become advantageous. Fortunately, `optim()` offers several gradient-based optimization algorithms to choose from.
+
+```{}
+# Methods that REQUIRE gradients:
+optim(par, fn, gr = gradient_fn, method = "BFGS")
+optim(par, fn, gr = gradient_fn, method = "CG")  # Conjugate Gradient
+optim(par, fn, gr = gradient_fn, method = "L-BFGS-B")
+```
+
+Examples of how to implement gradient-based optimization can be found in the `optim()` help documentation.
+
+

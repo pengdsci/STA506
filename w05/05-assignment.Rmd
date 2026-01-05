@@ -1,0 +1,235 @@
+---
+title: "Assignment 3: Methods of Moment Estimation"
+author: "Your Name "
+date: " Due: "
+output:
+  html_document: 
+    toc: yes
+    toc_depth: 4
+    toc_float: yes
+    number_sections: no
+    toc_collapsed: yes
+    code_folding: hide
+    code_download: yes
+    smooth_scroll: yes
+    theme: lumen
+  pdf_document: 
+    toc: yes
+    toc_depth: 4
+    fig_caption: yes
+    number_sections: yes
+    fig_width: 3
+    fig_height: 3
+  word_document: 
+    toc: yes
+    toc_depth: 4
+    fig_caption: yes
+    keep_md: yes
+editor_options: 
+  chunk_output_type: inline
+---
+
+```{css, echo = FALSE}
+#TOC::before {
+  content: "Table of Contents";
+  font-weight: bold;
+  font-size: 1.2em;
+  display: block;
+  color: navy;
+  margin-bottom: 10px;
+}
+
+
+div#TOC li {     /* table of content  */
+    list-style:upper-roman;
+    background-image:none;
+    background-repeat:none;
+    background-position:0;
+}
+
+h1.title {    /* level 1 header of title  */
+  font-size: 22px;
+  font-weight: bold;
+  color: DarkRed;
+  text-align: center;
+  font-family: "Gill Sans", sans-serif;
+}
+
+h4.author { /* Header 4 - and the author and data headers use this too  */
+  font-size: 15px;
+  font-weight: bold;
+  font-family: system-ui;
+  color: navy;
+  text-align: center;
+}
+
+h4.date { /* Header 4 - and the author and data headers use this too  */
+  font-size: 18px;
+  font-weight: bold;
+  font-family: "Gill Sans", sans-serif;
+  color: DarkBlue;
+  text-align: center;
+}
+
+h1 { /* Header 1 - and the author and data headers use this too  */
+    font-size: 20px;
+    font-weight: bold;
+    font-family: "Times New Roman", Times, serif;
+    color: darkred;
+    text-align: center;
+}
+
+h2 { /* Header 2 - and the author and data headers use this too  */
+    font-size: 18px;
+    font-weight: bold;
+    font-family: "Times New Roman", Times, serif;
+    color: navy;
+    text-align: left;
+}
+
+h3 { /* Header 3 - and the author and data headers use this too  */
+    font-size: 16px;
+    font-weight: bold;
+    font-family: "Times New Roman", Times, serif;
+    color: navy;
+    text-align: left;
+}
+
+h4 { /* Header 4 - and the author and data headers use this too  */
+    font-size: 14px;
+  font-weight: bold;
+    font-family: "Times New Roman", Times, serif;
+    color: darkred;
+    text-align: left;
+}
+
+/* Add dots after numbered headers */
+.header-section-number::after {
+  content: ".";
+
+body { background-color:white; }
+
+.highlightme { background-color:yellow; }
+
+p { background-color:white; }
+
+}
+```
+
+```{r setup, include=FALSE}
+# code chunk specifies whether the R code, warnings, and output 
+# will be included in the output files.
+if (!require("knitr")) {
+   install.packages("knitr")
+   library(knitr)
+}
+if (!require("pander")) {
+   install.packages("pander")
+   library(pander)
+}
+if (!require("ggplot2")) {
+  install.packages("ggplot2")
+  library(ggplot2)
+}
+if (!require("tidyverse")) {
+  install.packages("tidyverse")
+  library(tidyverse)
+}
+
+if (!require("plotly")) {
+  install.packages("plotly")
+  library(plotly)
+}
+####
+knitr::opts_chunk$set(echo = TRUE,       # include code chunk in the output file
+                      warning = FALSE,   # sometimes, you code may produce warning messages,
+                                         # you can choose to include the warning messages in
+                                         # the output file. 
+                      results = TRUE,    # you can also decide whether to include the output
+                                         # in the output file.
+                      message = FALSE,
+                      comment = NA
+                      )  
+```
+ 
+ \
+ 
+## **Assignment Objectives** 
+
+* Master the fundamental concepts of point estimation and performance metrics
+
+* Understand the theoretical foundation of the method of moments estimator (MME)
+
+* Implement MME in R, incorporating numerical approximation methods
+
+\
+
+**Use of AI Tools**
+
+**Policy on AI Tool Use**: Students must adhere to the AI tool policy specified in the course syllabus. The direct copying of AI-generated content is strictly prohibited. All submitted work must reflect your own understanding; where external tools are consulted, content must be thoroughly rephrased and synthesized in your own words.
+
+**Code Inclusion Requirement**: Any code included in your essay must be properly commented to explain the purpose and/or expected output of key code lines. Submitting AI-generated code without meaningful, student-added comments will not be accepted.
+
+\
+
+**Log-logistic Distribution**
+
+The log-logistic distribution (also known as the Fisk distribution) is a continuous probability distribution that is particularly useful in contexts where data exhibit non-negative, skewed behavior and where the hazard rate is unimodal (increases to a peak and then decreases). It has been widely used in the areas such as survival analysis and reliability engineering, environmental science, economics, pharmacology, finance and risk management, etc. 
+
+For given shape parameter $\beta$ and scale parameter $\alpha$, the cumulative distribution function
+
+$$
+F(x) = \frac{1}{1+(x/\alpha)^{-\beta}}
+$$
+
+As an exercise, you can derive the density in the following form
+
+$$
+f(x) = \frac{(\beta/\alpha)(x/\alpha)^{\beta-1}}{[1+(x/\alpha)^\beta]^2}, \ \ \text{ for } \ \ x > 0.
+$$
+
+After some algebra, we can find the $k$th moment
+
+$$
+\mu_k = E[X^k] = \alpha^k B\left(1+\frac{k}{\beta}, 1 - \frac{k}{\beta} \right).
+$$
+
+This assignment will focus on finding MME of parameters $\alpha$ and $\beta$ based on a real-world application data set.
+
+
+\
+
+## **Question 1: Derive the log-logistic density function **
+
+Given the CDF of the two-parameter log-logistic distribution
+
+$$
+F(x) = \frac{1}{1+(x/\alpha)^{-\beta}}.
+$$
+
+\
+
+## **Question 2: Distribution of Recovery Time from A Surgery**
+
+Time to recovery (in days) after a specific knee surgery procedure. This follows a typical **log-logistic pattern** in medical survival/recovery analysis:
+
+```
+8.23, 12.74, 14.83, 16.61, 18.16, 19.55, 20.80, 21.94, 23.00, 23.98, 24.89, 25.75, 26.56, 
+27.34, 28.08, 28.79, 29.48, 30.15, 30.81, 31.45, 32.08, 32.70, 33.31, 33.92, 34.53, 35.13, 
+35.73, 36.33, 36.93, 37.53, 38.14, 38.75, 39.37, 40.00, 40.64, 41.29, 41.95, 42.63, 43.33, 
+44.05, 44.79, 45.56, 46.36, 47.20, 48.08, 49.02, 50.03, 51.12, 52.32, 53.65
+```
+Based on the above data to perform the following analysis.
+
+a) Using method of moment estimation to estimate $\alpha$ and $\beta$, denoted by $\hat{\alpha}$ and $\hat{\beta}$, respectively. 
+
+b) Since the moment estimates $\hat{\alpha}$ and $\hat{\beta}$ are random, construct bootstrap sampling distributions for each. To visualize these distributions, plot separate bootstrap histograms for $\hat{\alpha}$ and $\hat{\beta}$.  hen, overlay a smooth density curve on each histogram using Gaussian kernel density estimation. Finally, describe the patterns of these density curves.
+
+
+
+
+
+
+
+
+

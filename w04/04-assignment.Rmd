@@ -1,0 +1,240 @@
+---
+title: "Assignment 3: ECDF and Bootstrap Sampling and Applications"
+author: "Your Name "
+date: " Due: "
+output:
+  html_document: 
+    toc: yes
+    toc_depth: 4
+    toc_float: yes
+    number_sections: no
+    toc_collapsed: yes
+    code_folding: hide
+    code_download: yes
+    smooth_scroll: yes
+    theme: lumen
+  pdf_document: 
+    toc: yes
+    toc_depth: 4
+    fig_caption: yes
+    number_sections: yes
+    fig_width: 3
+    fig_height: 3
+  word_document: 
+    toc: yes
+    toc_depth: 4
+    fig_caption: yes
+    keep_md: yes
+editor_options: 
+  chunk_output_type: inline
+---
+
+```{css, echo = FALSE}
+#TOC::before {
+  content: "Table of Contents";
+  font-weight: bold;
+  font-size: 1.2em;
+  display: block;
+  color: navy;
+  margin-bottom: 10px;
+}
+
+
+div#TOC li {     /* table of content  */
+    list-style:upper-roman;
+    background-image:none;
+    background-repeat:none;
+    background-position:0;
+}
+
+h1.title {    /* level 1 header of title  */
+  font-size: 22px;
+  font-weight: bold;
+  color: DarkRed;
+  text-align: center;
+  font-family: "Gill Sans", sans-serif;
+}
+
+h4.author { /* Header 4 - and the author and data headers use this too  */
+  font-size: 15px;
+  font-weight: bold;
+  font-family: system-ui;
+  color: navy;
+  text-align: center;
+}
+
+h4.date { /* Header 4 - and the author and data headers use this too  */
+  font-size: 18px;
+  font-weight: bold;
+  font-family: "Gill Sans", sans-serif;
+  color: DarkBlue;
+  text-align: center;
+}
+
+h1 { /* Header 1 - and the author and data headers use this too  */
+    font-size: 20px;
+    font-weight: bold;
+    font-family: "Times New Roman", Times, serif;
+    color: darkred;
+    text-align: center;
+}
+
+h2 { /* Header 2 - and the author and data headers use this too  */
+    font-size: 18px;
+    font-weight: bold;
+    font-family: "Times New Roman", Times, serif;
+    color: navy;
+    text-align: left;
+}
+
+h3 { /* Header 3 - and the author and data headers use this too  */
+    font-size: 16px;
+    font-weight: bold;
+    font-family: "Times New Roman", Times, serif;
+    color: navy;
+    text-align: left;
+}
+
+h4 { /* Header 4 - and the author and data headers use this too  */
+    font-size: 14px;
+  font-weight: bold;
+    font-family: "Times New Roman", Times, serif;
+    color: darkred;
+    text-align: left;
+}
+
+/* Add dots after numbered headers */
+.header-section-number::after {
+  content: ".";
+
+body { background-color:white; }
+
+.highlightme { background-color:yellow; }
+
+p { background-color:white; }
+
+}
+```
+
+```{r setup, include=FALSE}
+# code chunk specifies whether the R code, warnings, and output 
+# will be included in the output files.
+if (!require("knitr")) {
+   install.packages("knitr")
+   library(knitr)
+}
+if (!require("pander")) {
+   install.packages("pander")
+   library(pander)
+}
+if (!require("ggplot2")) {
+  install.packages("ggplot2")
+  library(ggplot2)
+}
+if (!require("tidyverse")) {
+  install.packages("tidyverse")
+  library(tidyverse)
+}
+
+if (!require("plotly")) {
+  install.packages("plotly")
+  library(plotly)
+}
+####
+knitr::opts_chunk$set(echo = TRUE,       # include code chunk in the output file
+                      warning = FALSE,   # sometimes, you code may produce warning messages,
+                                         # you can choose to include the warning messages in
+                                         # the output file. 
+                      results = TRUE,    # you can also decide whether to include the output
+                                         # in the output file.
+                      message = FALSE,
+                      comment = NA
+                      )  
+```
+ 
+ \
+ 
+## **Assignment Objectives** 
+
+* Understand the theoretical basis of Bootstrap sampling methods for approximating sampling distributions.
+
+* Assess the performance of Bootstrap sampling distributions against exact and asymptotic sampling distributions.
+
+* Implement Bootstrap sampling algorithm and construct sampling distributions using R.
+
+\
+
+**Use of AI Tools**
+
+**Policy on AI Tool Use**: Students must adhere to the AI tool policy specified in the course syllabus. The direct copying of AI-generated content is strictly prohibited. All submitted work must reflect your own understanding; where external tools are consulted, content must be thoroughly rephrased and synthesized in your own words.
+
+**Code Inclusion Requirement**: Any code included in your essay must be properly commented to explain the purpose and/or expected output of key code lines. Submitting AI-generated code without meaningful, student-added comments will not be accepted.
+
+\
+
+**Asymptotic Distribution of Sample Variance**
+
+Assume that $\{ x_1, x_2, \cdots, x_n \} \to F(x)$ with $\mu = E[X]$ and $\sigma^2 = \text{var}(X)$. Denote 
+
+$$
+s^2 = \frac{1}{n-1}\sum_{i=1}^n (x_i - \mu)^2
+$$
+
+If $n$ is large, 
+
+$$
+s^2 \to N\left(\sigma^2,  \frac{\mu_4-\sigma^4}{n} \right)
+$$
+
+where $\mu_4 = E[(X_i - \mu)^4]$ is tje 4th central moment which can be estimated by
+
+$$
+\hat{\mu}_4 = \frac{1}{n}\sum_{i=1}^n(x_i-\bar{x})^4.
+$$
+
+**Note**: This describes the asymptotic convergence of the sample variance, following from the central limit theorem (CLT). The sample size required for this approximation to hold is situation-dependent.
+
+
+\
+
+## **Question 1: Asymptotic vs Bootstrap Sampling Distributions**
+
+Write an essay summarizing the concepts of Asymptotic and Bootstrap Sampling Distributions, along with their key applications. Your discussion should be grounded in your personal understanding of the material. Any external sources including AI tools consulted must be clearly cited. 
+
+
+**Essay Prompt**: Discuss the concepts of the bootstrap sampling plan, the bootstrap sampling distribution, and the asymptotic sampling distribution in the context of statistics (e.g., sample mean and variance) computed from an independent and identically distributed (i.i.d.) sample. Your discussion should:
+
+* Clearly outline the key assumptions required for each method.
+
+* Explain the practical application of each distribution.
+
+* Provide guidance on when and why one should be preferred over the other in statistical inference.
+
+
+
+\
+
+## **Question 2: Daily Coffee Sales (in mL) at Two Different Cafe Locations**
+
+This data set represents the volume of regular brewed coffee sold per day (in milliliters) at two different cafe locations over a period of 50 days. 
+
+```
+2850, 3200, 2900, 3100, 2950, 7800, 8100, 7900, 3300, 3050, 4000, 4200, 3150, 3400, 7700, 8200, 
+3250, 4400, 3100, 4200, 4500, 4800, 4300, 8500, 8200, 8900, 8700, 3250, 3000, 4600, 4100, 8400, 
+8800, 3350, 4700, 3100, 8100, 3050, 8300, 4100, 3100, 8300, 8900, 8200, 4400, 4500, 3250, 4600, 
+8400, 3300, 4200, 4500, 4800, 4300, 8500
+```
+We are interested in finding the sampling distribution of sample means that will be used for various inferences about the underlying population mean.
+
+a) Based on the given data, can the Central Limit Theorem be used to derive the asymptotic sampling distribution of the sample mean? Justify your answer.
+
+b) Apply the bootstrap method to estimate the sampling distribution (often called the bootstrap sampling distribution) of the sample mean. Generate a kernel density estimate from the bootstrap sample means and plot it. Then, use this bootstrap distribution to validate your conclusion from part (a). Make sure your visuals are effective in enhancing the presentation of these results.
+
+c) Repeat the analysis in parts (a) and (b) for the sample variance.
+
+
+
+
+
+
+

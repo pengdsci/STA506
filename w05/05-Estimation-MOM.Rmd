@@ -1,0 +1,712 @@
+---
+title: "Method of Moment Estimation (MME)"
+author: "Cheng Peng"
+date: "West Chester University"
+output:
+  html_document: 
+    toc: yes
+    toc_depth: 4
+    toc_float: yes
+    number_sections: yes
+    toc_collapsed: yes
+    code_folding: show
+    code_download: yes
+    smooth_scroll: yes
+    highlight: monochrome
+    theme: spacelab
+    #theme: lumen
+  pdf_document: 
+    toc: yes
+    toc_depth: 4
+    fig_caption: yes
+    number_sections: yes
+    fig_width: 3
+    fig_height: 3
+  word_document: 
+    toc: yes
+    toc_depth: 4
+    fig_caption: yes
+    keep_md: yes
+editor_options: 
+  chunk_output_type: inline
+---
+
+```{css, echo = FALSE}
+#TOC::before {
+  content: "Table of Contents";
+  font-weight: bold;
+  font-size: 1.2em;
+  display: block;
+  color: navy;
+  margin-bottom: 10px;
+}
+
+
+div#TOC li {     /* table of content  */
+    list-style:upper-roman;
+    background-image:none;
+    background-repeat:none;
+    background-position:0;
+}
+
+h1.title {    /* level 1 header of title  */
+  font-size: 22px;
+  font-weight: bold;
+  color: DarkRed;
+  text-align: center;
+  font-family: "Gill Sans", sans-serif;
+}
+
+h4.author { /* Header 4 - and the author and data headers use this too  */
+  font-size: 15px;
+  font-weight: bold;
+  font-family: system-ui;
+  color: navy;
+  text-align: center;
+}
+
+h4.date { /* Header 4 - and the author and data headers use this too  */
+  font-size: 18px;
+  font-weight: bold;
+  font-family: "Gill Sans", sans-serif;
+  color: DarkBlue;
+  text-align: center;
+}
+
+h1 { /* Header 1 - and the author and data headers use this too  */
+    font-size: 20px;
+    font-weight: bold;
+    font-family: "Times New Roman", Times, serif;
+    color: darkred;
+    text-align: center;
+}
+
+h2 { /* Header 2 - and the author and data headers use this too  */
+    font-size: 18px;
+    font-weight: bold;
+    font-family: "Times New Roman", Times, serif;
+    color: navy;
+    text-align: left;
+}
+
+h3 { /* Header 3 - and the author and data headers use this too  */
+    font-size: 16px;
+    font-weight: bold;
+    font-family: "Times New Roman", Times, serif;
+    color: navy;
+    text-align: left;
+}
+
+h4 { /* Header 4 - and the author and data headers use this too  */
+    font-size: 14px;
+  font-weight: bold;
+    font-family: "Times New Roman", Times, serif;
+    color: darkred;
+    text-align: left;
+}
+
+/* Add dots after numbered headers */
+.header-section-number::after {
+  content: ".";
+
+body { background-color:white; }
+
+.highlightme { background-color:yellow; }
+
+p { background-color:white; }
+
+}
+```
+
+```{r setup, include=FALSE}
+# code chunk specifies whether the R code, warnings, and output 
+# will be included in the output files.
+if (!require("knitr")) {
+   install.packages("knitr")
+   library(knitr)
+}
+if (!require("pander")) {
+   install.packages("pander")
+   library(pander)
+}
+if (!require("ggplot2")) {
+  install.packages("ggplot2")
+  library(ggplot2)
+}
+if (!require("tidyverse")) {
+  install.packages("tidyverse")
+  library(tidyverse)
+}
+
+if (!require("plotly")) {
+  install.packages("plotly")
+  library(plotly)
+}
+
+## library(leaps)
+knitr::opts_chunk$set(echo = TRUE,       # include code chunk in the output file
+                      warning = FALSE,   # sometimes, you code may produce warning messages,
+                                         # you can choose to include the warning messages in
+                                         # the output file. 
+                      results = TRUE,    # you can also decide whether to include the output
+                                         # in the output file.
+                      message = FALSE,
+                      comment = NA
+                      )  
+```
+
+\
+
+
+# Introduction
+
+In statistical inference, point estimation refers to the process of using sample data to calculate a single value (called a **point estimate**) that serves as a "best guess" or "best estimate" of an unknown population parameter. Some technical terms
+
+* **Point estimator**: A function of the sample data used to estimate an unknown parameter $\theta$ of a population.
+
+* **Statistic**: A function of the sample data only (no unknown parameters).
+
+* **Sample space**: The set of all possible samples (data sets) that could be observed.
+
+* **Parameter space**: The set of all possible values of the parameter $\theta$.
+
+
+In the subsequent sections, we will introduce some notations and formalize the above concepts as well as some theories about estimations and a special point estimtor - method of moment (MoM).
+
+
+#  Basics of Point Estimation
+
+This section will cover the core concepts of point estimation, including the criteria for a good estimator—such as unbiasedness, consistency, and efficiency—and introduce common methods for deriving these estimates, like maximum likelihood estimation. Understanding these basics provides the critical foundation for all subsequent statistical inference, from constructing confidence intervals to testing hypotheses.
+
+
+## Notations and Definitions
+
+To summarize the basic properties of point estimate of population parameters. We introduce some notations. Let: 
+
+* $X_1, X_2, \ldots, X_n$ be a random sample from a population distribution $f(x|\theta)$, where $\theta$ is an unknown parameter. It is often denoted by $F_\theta(x)$.
+
+* $\Theta$ be the parameter space - possible values of $\theta$.
+
+* $\mathcal{X}$ be the sample space - possible values of $x$.
+
+A **statistic** is a function $T: \mathcal{X} \to \mathbb{R}^k$ for some $k$ that does not dependent on $\theta$
+
+A **point estimator** $\hat{\theta}$ of $\theta$ is a statistic whose range (**parameter space**) is $\Theta$ (or at least a subset of it), 
+
+$$
+\hat{\theta} = T(X_1, X_2, \cdots, X_n).
+$$
+
+$$
+\hat{\theta}: \mathcal{X} \to \Theta, 
+$$
+that is, For a given point $\mathbf{X} = (X_1, X_2, \cdots, X_n)$ in a sample space $\mathcal{X}$: $\mathbb{X} \in \mathcal{X}$,
+
+
+$$
+\hat{\theta}(\mathbf{X}) \in \Theta
+$$
+
+and $\hat{\theta}$ is a statistic.
+
+
+**Example**: Suppose $X_1, X_2, \cdots, X_n \to N(\mu, \sigma_0^2)$, $\sigma_0^2$ is a known population variance. We want to estimate $\mu \in \mathbb{R} = \Theta$.
+
+* $(X_1, X_2, \cdots, X_n) \in \mathbb{R}^n$. That is, $n$-dimensional vector $(X_1, X_2, \cdots, X_n)$ is a point in the $n$-dimensional space $\mathbb{R}^n$.
+
+* Parameter space $\Theta = \mathbb{R}$. That is, $\mu$ is a point in the one dimensional space $\mathbb{R}$.
+
+* A **point estimator** $\hat{\mu}(\mathbf{X}) = \bar{X} = (\sum_{i=1}^n X_i)/n$.
+
+Clearly,
+
+* $\hat{\mu}$ is a statistic (depends only on sample).
+
+* $\hat{\mu}: \mathbb{R}^n\equiv \mathcal{X}  \to \mathbb{R} \equiv  \Theta$ maps sample space to parameter space.
+
+\
+
+## Properties of Point Estimate
+
+**1. Unbiasedness**
+
+An estimator $\hat{\theta}$ is unbiased if $E[\hat{\theta}] = \theta$.
+
+The bias of an estimator is defined as:
+$$
+\text{Bias}(\hat{\theta}) = E(\hat{\theta}) - \theta
+$$
+**2. Consistency**
+
+An estimator is consistent if:
+
+$$
+\lim_{n\to \infty} P(|\hat{\theta}-\theta|>\epsilon) = 0, \ \ \text{ for all } \epsilon > 0.
+$$
+⁡
+**3. Efficiency**
+
+Among unbiased estimators, the one with smaller variance is more efficient. The Cramér-Rao lower bound gives the minimum possible variance for an unbiased estimator:
+
+$$
+\text{Var}(\hat{\theta}) \ge \frac{1}{I_n(\theta)}=\frac{1}{nI_0(\theta)}
+$$
+
+where $I_0(\theta)$ is the **Fisher information** that measures the amount of information that a sample $\{X\}$ carries about the unknown population parameter $\theta$ to be estimated. To calculate the Fisher Information of a univariate parameter, we only need to find the negative expected value of the 2nd order derivative of the log density function (continuous RV) or mass function (for discrete RV) as follows
+
+$$
+I_0(\theta) = -E_X\left[ \frac{d^2}{d\theta^2} \log f(X: \theta)\right]
+$$
+
+**Example**: Consider Poisson distribution 
+
+$$
+P(X=k) = \frac{\lambda^k e^{-\lambda}}{k!}, \ \ \lambda = 0, 1, 2, \cdots
+$$
+
+Based on the above definition of the Fisher Information of $\lambda$, we calculate $I_0(\lambda)$ in the following steps
+
+1. Let $L(\lambda) = f(X:\lambda) = \lambda^X e^{-\lambda}/X!$
+
+2. $\ell(\lambda) = \log L(\lambda) = -\lambda + X\log(\lambda) - \log(X!)$
+
+3. Taking the first order derivative $\ell(\lambda)$, we get $\ell^\prime(\lambda) = -1 + X/\lambda$.
+
+4. Taking the second order derivetive $\ell(\lambda)$, we get $\ell^{\prime\prime}(\lambda) = -x/\lambda^2$
+
+5. $I_0(\lambda) = -E_X[\ell^{\prime\prime}(\lambda)] = -E_X[-X/\lambda^2] = E_X[X]/\lambda^2 = 1/\lambda$.
+
+
+
+**4. Mean Squared Error (MSE)**
+
+The MSE combines both variance and bias:
+
+$$
+MSE(\hat{\theta}) = E[(\hat{\theta} - \theta)^2] = \text{Var}(\hat{\theta}) + [\text{Bias}(\hat{\theta})]^2
+$$
+
+
+
+<font color = "darkred">**Remarks**: The above properties serve theoretical evaluation or numerical evaluation through Monte Carlo simulation since the these properties have true unknown parameters.</font>
+
+\
+
+# Method of Moments Estimation
+
+The Method of Moments (MoM) is one of the oldest and most intuitive approaches to parameter estimation. The basic idea is to equate population moments with sample moments and solve for the parameters.
+
+## Population and Sample Moments
+
+Recall that the $k$-th population moment about the origin is
+
+$$
+\mu^k=E[X^k]. 
+$$
+
+Clearly, the $k$-th moment is a function of population parameters only. It is independent on the observed data.
+
+On the the $k$-th sample moment is:
+
+$$
+m_k = \frac{1}{n}\sum_{i=1}^n X_i^k
+$$
+
+The theoretical moments can be derived from the moment generating function of a specified model (parameteric distribution).
+
+
+## Procedure for Method of Moment Estimation
+
+The fundamental logic of the moment estimation is to **make the properties of the sample match the properties of the theoretical probability model**. Since the theoretical model's properties (like mean, variance) depend on its unknown parameters, we can set up equations to solve for those parameters. This logic is a straightforward application of the **analogy principle**: <font color = "red">**if the model is correct, then the sample should reflect it.**</font>
+
+
+**Estimation Procedure**
+
+For a distribution with $p$ parameters $\theta_1, \theta_2, \ldots, \theta_p$:
+
+1. Express population moments in terms of parameters - $k$-th theoretical moment:
+
+$$
+\mu_k = h_k(\theta_1, \theta_2, \cdots, \theta_p)
+$$
+
+for $k = 1, 2, \cdots, p$ are po
+
+
+2. Equate population moments with sample moments:
+
+$$
+h_k(\theta_1, \theta_2, \cdots, \theta_p) = m_k
+$$
+for $k=1,2,\cdots,p$
+
+3. Solve the system of equations to obtain MoM estimators $\hat{\theta}_1, \hat{\theta}_2, \ldots, \hat{\theta}_p$
+
+To explain the computing efforts, we re-express the above system of $p$ equations explicitly in the following
+
+
+$$
+\begin{align*}
+\mu_1(\theta_1, \dots, \theta_p) &= m_1 \\
+\mu_2(\theta_1, \dots, \theta_p) &= m_2 \\
+&\vdots \\
+\mu_p(\theta_1, \dots, \theta_p) &= m_p
+\end{align*}
+$$
+
+\
+
+In general, the above equations are nonlinear. This means that numerical methods are required to solve the system of equations.  In the next section, we will use several examples to show how to moment of estimation based on some special models learned in the previous class.
+
+\
+
+<font color = "darkred">**Concluding Remarks**
+
+1. The number of equations in the MOM system is, in general, equal to or greater than the number of parameters. 
+
+2. The system of equations in the moment estimation may not have a closed form solution. In many cases, we need to use a numerical procedure to find the approximate solution.
+
+</font>
+
+
+
+
+
+# Examples of Method of Moments Estimation
+
+This section focuses on three examples using well-known models. The moment estimators of parameters in the first two distributions have an explicit closed form solutions. The third example on Weibull does not have a closed form estimator. We need to use numerical method to solve a nonlinear equations. 
+
+
+## Example 1: Normal Distribution
+
+Consider $\{X_1, X_2, \cdots, X_n \} \sim N(\mu, \sigma^2)$, we will use method of moment to estimate the two parameters $\theta = (\mu, \sigma^2)$.
+
+Since there are two parameters in the model, we need to calculate the **first and second population moments** and the corresponding sample moments as follows.
+
+* Population moments are calculated in the following:
+
+$$
+\begin{aligned}
+\mu_1 &= E[X] = \mu \\
+\mu_2 &= E[X^2] = \sigma^2 + \mu^2
+\end{aligned}
+$$
+
+* Sample moments:
+
+$$
+\begin{aligned}
+m_1 &= \frac{1}{n} \sum_{i=1}^n X_i \\
+m_2 &= \frac{1}{n} \sum_{i=1}^n X_i^2
+\end{aligned}
+$$
+
+ The method of moment estimator is the solution to the following system of equations
+ 
+ $$
+\begin{aligned}
+\mu &= \frac{1}{n} \sum_{i=1}^n X_i \\
+\sigma^2 + \mu^2 &= \frac{1}{n} \sum_{i=1}^n X_i^2
+\end{aligned}
+$$
+ 
+ Solveing the above system of nonlinear equations, we have
+ 
+ $$
+ \begin{align*}
+\hat{\mu} &= \frac{1}{n} \sum_{i=1}^n X_i & = \bar{X} \\
+\hat{\sigma}^2  &= \frac{1}{n} \sum_{i=1}^n X_i^2 - \bar{X}^2 &= \frac{1}{n}\sum_{i=1}^n(X_i-\bar{X})^2
+\end{align*}
+ $$
+ 
+ Next, we implement the above MME through a simulated data in R.
+ 
+```{r}
+# Example: MoM for Normal Distribution
+set.seed(123)
+n <- 1000
+true_mu <- 5
+true_sigma <- 2
+
+# Generate sample data
+sample_data <- rnorm(n, mean = true_mu, sd = true_sigma)
+
+# Method of Moments estimation
+mom_mu <- mean(sample_data)
+mom_sigma_sq <- mean(sample_data^2) - mom_mu^2
+mom_sigma <- sqrt(mom_sigma_sq)
+
+cat("True parameters: μ =", true_mu, ", σ =", true_sigma, "\n")
+cat("MoM estimates: μ_hat =", round(mom_mu, 3), 
+    ", σ_hat =", round(mom_sigma, 3), "\n")
+```
+
+
+
+## Example 2: Gamma Distribution
+
+
+For $X \sim \text{Gamma}(\alpha, \beta)$, with PDF:
+
+$$
+f(x \mid \alpha, \beta) = \frac{\beta^{\alpha}}{\Gamma(\alpha)} x^{\alpha - 1} e^{-\beta x} \quad \text{for } x > 0
+$$
+
+
+We know that the top population moments are given in the following
+
+$$
+\begin{align*}
+\mu_1 &= E[X] = \frac{\alpha}{\beta} \\[2mm]
+\mu_2 &= E[X^2] = \frac{\alpha(\alpha + 1)}{\beta^2}
+\end{align*}
+$$
+
+Assume the first and second moments to be $m_1$ and $m_2$. We set up the following system of equations
+
+$$
+\begin{align*}
+m_1 & = \frac{\alpha}{\beta} \\[2mm]
+m_2 & = \frac{\alpha(\alpha + 1)}{\beta^2}
+\end{align*}
+$$
+
+
+Solving for parameters $\alpha$ and $\beta$ from the above system of equation to get the the estimators based on the method of moment estimation:
+
+$$
+\begin{align*}
+\hat{\beta} &= \frac{m_1}{m_2 - m_1^2} \\[2mm]
+\hat{\alpha} &= m_1 \hat{\beta} = \frac{m_1^2}{m_2 - m_1^2}
+\end{align*}
+$$
+ 
+ 
+The following is the implementation of the above MME through a simulated data in R.
+ 
+
+```{r}
+# Example: MoM for Gamma Distribution
+set.seed(123)
+n <- 1000
+true_alpha <- 3
+true_beta <- 2
+
+# Generate sample data
+sample_gamma <- rgamma(n, shape = true_alpha, rate = true_beta)
+
+# Method of Moments estimation
+m1 <- mean(sample_gamma)
+m2 <- mean(sample_gamma^2)
+
+mom_beta <- m1 / (m2 - m1^2)
+mom_alpha <- m1 * mom_beta
+
+cat("True parameters: α =", true_alpha, ", β =", true_beta, "\n")
+cat("MoM estimates: α_hat =", round(mom_alpha, 3), 
+    ", β_hat =", round(mom_beta, 3), "\n")
+```
+
+
+
+**Example 3. Weibull Distribution**
+
+The Weibull distribution has probability density function:
+
+$$
+f(x \mid \lambda, k) = \frac{k}{\lambda} \left( \frac{x}{\lambda} \right)^{k-1} e^{-(x/\lambda)^k} \quad \text{for } x \geq 0
+$$
+
+
+where
+
+* $k>0$ is the shape parameter
+
+* $\lambda > 0$ is the scale parameter
+
+The first and second moments of population are
+
+$$
+\begin{align*}
+\mu_1 &= E[X] = \lambda \Gamma\left(1 + \frac{1}{k}\right) \\
+\mu_2 &= E[X^2] = \lambda^2 \Gamma\left(1 + \frac{2}{k}\right)
+\end{align*}
+$$
+
+The corresponding sample moments are
+
+$$
+\begin{align*}
+m_1 &= \frac{1}{n} \sum_{i=1}^n X_i \\
+m_2 &= \frac{1}{n} \sum_{i=1}^n X_i^2
+\end{align*}
+$$
+
+
+We set population moments equal to sample moments to the following Method of Moments Equations:
+
+$$
+\begin{align*}
+\lambda \Gamma\left(1 + \frac{1}{k}\right) &= m_1 \quad \cdots\cdots\quad\text{(1)}\\
+\lambda^2 \Gamma\left(1 + \frac{2}{k}\right) &= m_2 \quad \cdots\cdots\quad\text{(2)}
+\end{align*}
+$$
+
+The above system of equations does not have a closed form solution. We next sketch the steps for solving the above nonlinear system. 
+
+From equations (1) and (2), we can eliminate $\lambda$:
+
+
+**Step 1**: Square equation (1):
+
+$$
+\lambda^2 \left[\Gamma\left(1 + \frac{1}{k}\right)\right]^2 = m_1^2
+$$
+
+**Step 2**: Divide equation (2) by this result:
+
+$$
+\frac{\Gamma\left(1 + \frac{2}{k}\right)}{\left[\Gamma\left(1 + \frac{1}{k}\right)\right]^2} = \frac{m_2}{m_1^2}
+$$
+
+**Step 3**: Let $\hat{k}$ be the solution to:
+  
+$$
+\frac{\Gamma\left(1 + \frac{2}{k}\right)}{\left[\Gamma\left(1 + \frac{1}{k}\right)\right]^2} = \frac{m_2}{m_1^2}
+$$
+
+**Step 4**: Once $\lambda$ is found, obtain $\hat{\lambda}$  from:
+
+$$
+\hat{\lambda} = \frac{m_1}{\Gamma\left(1 + \frac{1}{\hat{k}}\right)}
+$$
+
+The parameter $k$ can be solved numerically from the following equation:
+
+
+$$
+g(k) = \frac{\Gamma\left(1 + \frac{2}{k}\right)}{\left[\Gamma\left(1 + \frac{1}{k}\right)\right]^2} - \frac{m_2}{m_1^2} = 0
+$$
+
+The method of moments estimation for the shape parameter $k$ of the Weibull distribution leads to a nonlinear equation that must be solved using numerical techniques.
+
+
+# Root Finiding of Nonlinear Equations
+
+Consider a nonlinear equation of the form $f(x) = 0$. Numerical methods for finding its roots can be broadly classified into two categories: those that utilize the gradient (the derivative $f^\prime(x)$ and non-gradient methods that require only function evaluations. The secant method, a non-gradient approach, is demonstrated in the following animation.
+
+
+```{r echo=FALSE, fig.align ="center",  out.width = '65%'}
+knitr::include_graphics("Metodo_delle_secanti.gif")
+```
+
+A detailed discussion of numerical optimization is beyond the scope of this course. However, R provides several built-in functions for solving nonlinear equations. Some of these require derivatives, while others do not.
+
+
+* R function `optimize()` in package **stats** – an implementation of Brent’s method that does not require derivatives.
+
+* R function `nleqslv()` in package **nleqslv** – implements a variant of Newton’s method that does require derivatives.
+
+* R function `uniroot()` in package **stats** – also implements a variant of Brent’s method without requiring derivatives, but it can solve only univariate nonlinear equations.
+
+
+# MME of Weibull Parameters
+
+We now complete the method of moments estimation (MME) for the Weibull parameters discussed earlier, which requires a numerical solution. The procedure will use the R built-in function `optimize()`, an implementation of Brent's method.
+
+
+```{r}
+# Set seed for reproducibility
+set.seed(123)
+
+# True parameters
+true_shape <- 2.5
+true_scale <- 3.0
+
+# Generate Weibull distributed data
+n <- 1000
+x <- rweibull(n, shape = true_shape, scale = true_scale)
+
+# Alternative approach using optim()
+weibull_mom_optim <- function(x) {
+  m1 <- mean(x)
+  m2 <- mean(x^2)
+  target <- m2 / (m1^2)
+  
+  # Objective function to minimize
+  objective <- function(k) {
+    gamma1 <- gamma(1 + 1/k)
+    gamma2 <- gamma(1 + 2/k)
+    (gamma2 / (gamma1^2) - target)^2
+  }
+  
+  # Optimize for k using BRENT's Method
+  opt <- optimize(objective, interval = c(0.1, 10))
+  k_hat <- opt$minimum
+  lambda_hat <- m1 / gamma(1 + 1/k_hat)
+  
+  return(list(shape = k_hat, scale = lambda_hat))
+}
+
+weibull_mom_optim(x)
+```
+
+The above numerical example simulated data from Weibull distribution with shape = 2.5 and scale = 3. Next, we compare the estimated density (parametric), non-parametric kernel density, and true density. 
+
+
+```{r}
+# True parameters
+true_shape <- 2.5
+true_scale <- 3.0
+
+# Create density plot comparing true distribution and estimated
+x_range <- seq(0, max(x), length.out = 200)
+true_dens <- dweibull(x_range, shape = true_shape, scale = true_scale)
+mom_dens <- dweibull(x_range, shape = 2.52, scale = 3.0112)
+
+## random sample
+rand.sample <- rweibull(200, shape = true_shape, scale = true_scale)
+d <- density(rand.sample)
+pdf_interpolator <- approxfun(d$x, d$y)
+##
+plot_data <- data.frame(
+  x = rep(x_range, 3),
+  density = c(true_dens, mom_dens, pdf_interpolator(x_range)),
+  Distribution = rep(c("True Density", "Method of Moments", "Sample Data (KDE)"), 
+                    each = length(x_range))
+)
+
+weibull.plt <- ggplot(plot_data, aes(x = x, y = density, color = Distribution, linetype = Distribution)) +
+  geom_line(size = 1) +
+  labs(title = "Weibull Distribution: True vs Method of Moments Estimation",
+       x = "Weibull Score", y = "True and Estimated Density") +
+  theme_minimal() +
+  scale_color_manual(values = c("True Density" = "red", "Method of Moments" = "blue", 
+                               "Sample Data (KDE)" = "black")) +
+  scale_linetype_manual(values = c("True Density" = "solid", "Method of Moments" = "dashed",
+                                  "Sample Data (KDE)" = "dotted")) +
+  theme(plot.title = element_text(hjust = 0.5),
+        plot.margin = margin(t = 35, r = 20, b = 30, l = 30, unit = "pt"))
+ggplotly(weibull.plt)
+```
+
+
+Since the data was simulated from the Weibull population with shape 2.5 and scale 3. The MME of the shape and scale are very close to the true values. Therefore, the estimated parametric density curve is almost identical to the true density curve. The nonparametric kernel density curve is slightly different from the true density curve. This means that <font color = "darkred">**if the distribution is correctly specified, the parametric density estimation more efficient than the nonparametric kernel density estimation.**</font>  
+
+As a good practice, you can simulate a dataset from a Weibull distribution and attempt to fit a normal distribution to it. Plot the three resulting density curves—the true Weibull, the estimated normal, and a nonparametric kernel density—to compare the performance of parametric and nonparametric estimation methods.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

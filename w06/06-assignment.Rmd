@@ -1,0 +1,257 @@
+---
+title: "Assignment 4: Maximum Likelihood Estimation"
+author: "Your Name "
+date: " Due: "
+output:
+  html_document: 
+    toc: yes
+    toc_depth: 4
+    toc_float: yes
+    number_sections: no
+    toc_collapsed: yes
+    code_folding: hide
+    code_download: yes
+    smooth_scroll: yes
+    theme: lumen
+  pdf_document: 
+    toc: yes
+    toc_depth: 4
+    fig_caption: yes
+    number_sections: yes
+    fig_width: 3
+    fig_height: 3
+  word_document: 
+    toc: yes
+    toc_depth: 4
+    fig_caption: yes
+    keep_md: yes
+editor_options: 
+  chunk_output_type: inline
+---
+
+```{css, echo = FALSE}
+#TOC::before {
+  content: "Table of Contents";
+  font-weight: bold;
+  font-size: 1.2em;
+  display: block;
+  color: navy;
+  margin-bottom: 10px;
+}
+
+
+div#TOC li {     /* table of content  */
+    list-style:upper-roman;
+    background-image:none;
+    background-repeat:none;
+    background-position:0;
+}
+
+h1.title {    /* level 1 header of title  */
+  font-size: 22px;
+  font-weight: bold;
+  color: DarkRed;
+  text-align: center;
+  font-family: "Gill Sans", sans-serif;
+}
+
+h4.author { /* Header 4 - and the author and data headers use this too  */
+  font-size: 15px;
+  font-weight: bold;
+  font-family: system-ui;
+  color: navy;
+  text-align: center;
+}
+
+h4.date { /* Header 4 - and the author and data headers use this too  */
+  font-size: 18px;
+  font-weight: bold;
+  font-family: "Gill Sans", sans-serif;
+  color: DarkBlue;
+  text-align: center;
+}
+
+h1 { /* Header 1 - and the author and data headers use this too  */
+    font-size: 20px;
+    font-weight: bold;
+    font-family: "Times New Roman", Times, serif;
+    color: darkred;
+    text-align: center;
+}
+
+h2 { /* Header 2 - and the author and data headers use this too  */
+    font-size: 18px;
+    font-weight: bold;
+    font-family: "Times New Roman", Times, serif;
+    color: navy;
+    text-align: left;
+}
+
+h3 { /* Header 3 - and the author and data headers use this too  */
+    font-size: 16px;
+    font-weight: bold;
+    font-family: "Times New Roman", Times, serif;
+    color: navy;
+    text-align: left;
+}
+
+h4 { /* Header 4 - and the author and data headers use this too  */
+    font-size: 14px;
+  font-weight: bold;
+    font-family: "Times New Roman", Times, serif;
+    color: darkred;
+    text-align: left;
+}
+
+/* Add dots after numbered headers */
+.header-section-number::after {
+  content: ".";
+
+body { background-color:white; }
+
+.highlightme { background-color:yellow; }
+
+p { background-color:white; }
+
+}
+```
+
+```{r setup, include=FALSE}
+# code chunk specifies whether the R code, warnings, and output 
+# will be included in the output files.
+if (!require("knitr")) {
+   install.packages("knitr")
+   library(knitr)
+}
+if (!require("pander")) {
+   install.packages("pander")
+   library(pander)
+}
+if (!require("ggplot2")) {
+  install.packages("ggplot2")
+  library(ggplot2)
+}
+if (!require("tidyverse")) {
+  install.packages("tidyverse")
+  library(tidyverse)
+}
+
+if (!require("plotly")) {
+  install.packages("plotly")
+  library(plotly)
+}
+####
+knitr::opts_chunk$set(echo = TRUE,       # include code chunk in the output file
+                      warning = FALSE,   # sometimes, you code may produce warning messages,
+                                         # you can choose to include the warning messages in
+                                         # the output file. 
+                      results = TRUE,    # you can also decide whether to include the output
+                                         # in the output file.
+                      message = FALSE,
+                      comment = NA
+                      )  
+```
+ 
+\
+ 
+## **Assignment Objectives** 
+
+* Comprehend the likelihood function and its properties.
+
+* Master the maximum likelihood estimation framework and required components.
+
+* Understand the plug-in principle underlying MLE.
+
+* Implement maximum likelihood estimation procedures in R.
+
+\
+
+## **Policies of Using AI Tools**
+
+**Policy on AI Tool Use**: Students must adhere to the AI tool policy specified in the course syllabus. The direct copying of AI-generated content is strictly prohibited. All submitted work must reflect your own understanding; where external tools are consulted, content must be thoroughly rephrased and synthesized in your own words.
+
+**Code Inclusion Requirement**: Any code included in your essay must be properly commented to explain the purpose and/or expected output of key code lines. Submitting AI-generated code without meaningful, student-added comments will not be accepted.
+
+\
+
+**Gamma Distribution Revisited**
+
+Let $X$ be the two parameter Gamma random variable with density function
+
+$$
+f(x \mid \alpha, \beta) = \frac{1}{\Gamma(\alpha)\beta^\alpha} x^{\alpha-1} e^{-x/\beta}  \ \ \text{for} \ \  x > 0,
+$$
+
+where with $\alpha > 0$ (shape), $\beta>0$ (scale), and
+
+$$
+\Gamma(\alpha) = \int_{0}^{\infty} t^{\alpha-1} e^{-t} \, dt, \quad \alpha > 0.
+$$
+
+$\Gamma(x)$ can be computed in R using the `gamma()` function. The derivative of $\Gamma(x)$ are given respectively by
+
+$$
+\Gamma^\prime(z) = \Gamma (z)\psi_0(z)
+$$
+
+where $\psi_0(z) = \frac{d}{dz} \ln \Gamma{z}$. In R, the digamma function $\psi_0(z)$ is evaluated by `digamma()`.
+
+
+
+\
+
+<font color = "blue">This assignment focuses on finding maximum likelihood estimate of parameters $\alpha$ and $\beta$ based on a real-world application data set.</font>
+
+
+\
+
+## **Question 1: Derive gradient (first order partial derivative) of likelihood function**
+
+Assume that $\{x_1, x_2, \cdots, x_n \} \to \text{ gamma }(\alpha, \beta)$ with density function given by
+
+$$
+f(x \mid \alpha, \beta) = \frac{1}{\Gamma(\alpha)\beta^\alpha} x^{\alpha-1} e^{-x/\beta}  \ \ \text{for} \ \  x > 0,
+$$
+
+Derive the gradient of the likelihood function with respect to the gamma distribution parameters $\alpha$ and $\beta$. To this end,
+
+
+a). Write out the full likelihood function based on the given data and the density function provided above.
+
+
+b). Derive the score functions (the gradient of the log-likelihood) from the full likelihood function in part (a).
+
+\
+
+## **Question 2: Birth data set**
+
+The following R code reads in a data set containing, for each of 7 days, the lengths of time in hours spent by
+women in the delivery suite while giving birth (without a ceasarian section) at John Radcliffe Hospital in
+Oxford, England. The data are taken from Davison (Statistical Models. Cambridge University Press, 2003).
+
+```
+2.1, 3.4, 4.25, 5.6, 6.4, 7.3, 8.5, 8.75, 8.9, 9.5, 9.75, 10, 10.4, 10.4, 16, 19,
+4, 4.1, 5, 5.5, 5.7, 6.5, 7.25, 7.3, 7.5, 8.2, 8.5, 9.75, 11, 11.2, 15, 16.5, 2.6, 
+3.6, 3.6, 6.4, 6.8, 7.5, 7.5, 8.25, 8.5, 10.4, 10.75, 14.25, 14.5, 1.5, 4.7, 4.7, 
+7.2, 7.25, 8.1, 8.5, 9.2, 9.5, 10.7, 11.5, 2.5, 2.5, 3.4, 4.2, 5.9, 6.25, 7.3, 7.5, 
+7.8, 8.3, 8.3, 10.25, 12.9, 14.3, 4, 4, 5.25, 6.1, 6.5, 6.9, 7, 8.45, 9.25, 10.1, 
+10.2, 12.75, 14.6, 2, 2.7, 2.75, 3.4, 4.2, 4.3, 4.9, 6.25, 7, 9, 9.25, 10.7
+```
+
+Assume the data are generated from a gamma distribution. The objective is to use these data and the designated algorithm to find the maximum likelihood estimates (MLEs) of the parameters $\alpha$ and $\beta$.
+
+
+a). Find the MLEs of $\alpha$ and $\beta$, denoted by $\hat{\alpha}$ and $\hat{\beta}$,  using gradient-based optimization via the R function `optim()` with the gradient vector derived in Question 1.
+
+
+b). Apply the method of moments to obtain estimators for $\alpha$ and $\beta$. Denote these moment estimators as $\tilde{\alpha}$ and $\tilde{\beta}$.
+
+
+c). Conduct a brief literature review comparing the method of moments estimation (MME) and maximum likelihood estimation (MLE). Synthesize the key advantages and limitations of each, concluding with a practical recommendation.
+
+
+
+
+
+
+
