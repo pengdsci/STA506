@@ -1,0 +1,363 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <title>STA551</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link href="https://fonts.googleapis.com/css?family=Poppins:300,400,500,600,700,800,900" rel="stylesheet">		
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="css/style.css">
+
+    <style>
+      a:link {
+          color: blue;
+          background-color: transparent;
+          text-decoration: none;
+          cursor: pointer;
+        }
+       a:visited {
+          color: navy;
+          background-color: transparent;
+          text-decoration: none;
+        }
+       a:hover {
+          color: red;
+          background-color: transparent;
+          text-decoration: underline;
+         }
+       a:active {
+          color: purple;
+          background-color: transparent;
+          text-decoration: underline;
+        }
+        
+   link-btn {
+        background-color: purple;
+        color: gold;
+        border: 1px solid DodgerBlue;
+        padding: 5px 5px 5px 5px;
+        text-align: center;
+        text-decoration: none;
+        display: inline-block;
+        height: 14px;
+        font-size: 12px;
+        font-weight: normal;
+        margin: 2px 2px 2px 2px;
+        cursor: pointer;
+        }
+        
+        th, td {
+           padding-top: 0px;
+           padding-bottom: 0px;
+           font-size: 13px;
+        }
+        
+           body {
+         background-image: url('images/BgImg.jpg');
+        }
+     </style>
+
+ <script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    tex2jax: {
+      inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+      processEscapes: true
+    }
+  });
+</script>   
+
+<script src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"></script>
+    
+  </head>
+
+  <body>	
+      
+ <center>
+ <table width="1100" border="3" bordercolor="E39A21" style="background-color:#FFFFE0;">
+   <tbody>
+    <TR>            
+       <TD> 
+      <!-- NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN-->
+      <!-- MMMMMMMMMMMMMMMM  Siderbar Navigation Panel   MMMMMMMMMMMMMMMMM-->
+      <!-- NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN-->
+      <div class="wrapper d-flex align-items-stretch">
+	   <nav id="sidebar">
+		 <div class="p-3 pt-8">
+     
+		 <a href="#" class="img logo rounded-circle mb-3" 
+                    style="background-image: url(images/sta551logo.jpg);"></a>
+                 <center>
+                     <font size = 2 color = "yellow"> Instr: Cheng Peng </font>
+                     <br>
+                     <font size = 3 color = "skyblue"> <b>Spring 2026</b> </font>
+             </center>
+                 <BR>
+	         <ul class="list-unstyled components mb-3">
+	         <!--li class="active">
+	             <!--a href="#weeklySubmenu" data-toggle="collapse" 
+                        aria-expanded="false" class="dropdown-toggle">Module List (Archive)</a>
+	                <ul class="collapse list-unstyled" id="weeklySubmenu"-->
+                        <!--center><font size = 4 color = "yellow"><b>Module List</b></font>
+                            <br><br-->
+                           <table  style="width:110%; border: 0px solid skyblue; text-align:left; padding-top: 5px; padding-bottom: 5px;">
+                               <tr>
+                                    <td> <a href="index.html"><font color = "yellow">&nbsp;1. Introduction and Computing Tools</font></a></td>
+                                </tr>
+                               <tr>
+                                    <td> <a href="sta506-w02.html"><font color = "yellow">&nbsp;2. Distribution Functions Revisited</font></a></td>  
+                             </tr>
+                               <tr>
+                                    <td> <a href="sta506-w03.html"><font color = "yellow">&nbsp;3. Sampling Distributions</font></a></td>                     
+                                   </tr>
+                                 <tr>
+                                    <td> <a href="sta506-w04.html"><font color = "yellow">&nbsp;4. ECDF and Bootstrap Sampling</font></a></td>                     
+                                   </tr>
+                               <tr>
+                               
+                                    <td> <a href="sta506-w05.html"><font color = "yellow">&nbsp;5. Method of Moment Estimation</font></a></td>
+                                   </tr>
+                               <tr>
+                                    <td> <a href="sta506-w06.html"><font color = "yellow">&nbsp;6. Method of Likelihood Estimation (MLE)</font></a></td>   
+                                   </tr>
+                               <tr>
+                                    <td> <a href="sta506-w07.html"><font color = "yellow">&nbsp;7. Properties of MLE</font></a></td>                              
+                               </tr>
+                               <tr>
+                                    <td> <a href="sta506-w08.html"><font color = "yellow">&nbsp;8. Confidence Intervals</font></a></td>
+                                   </tr>
+                               <tr>
+                                     <td> <a href="sta506-w09.html"><font color = "yellow">&nbsp;9. Bootstrap Confidence Intervals</font></a></td>                     
+                                   </tr>
+                               <tr>
+                                    <td> <a href="sta506-w10.html"><font color = "yellow">&nbsp;10. Logic of Testing Hypothesis</font></a></td> 
+                                   </tr>
+                               
+                               <tr>
+                                    <td> <a href="sta506-w11.html"><font color = "yellow">&nbsp;11.  Asymptoic Chi-squared Tests</font></a></td>                         </tr>
+                               <tr>
+                                     <td> <a href="sta506-w12.html"><font color = "yellow">&nbsp;12. Bootstrap Hypothesis Testing</font></a></td>                     
+                                   </tr>
+
+                                <tr>
+
+                               <tr>
+                                    <td> <a href="sta506-w13.html"><font color = "yellow">13. Baysian Framework</font></a></td>                              
+                               </tr>
+                               <tr>
+                                    <td> <a href="sta506-w14.html"><font color = "yellow">14. Conjugate Bayesian Inference</font></a></td>
+                                   </tr>
+                              </table> 
+                              
+                              </ul>
+            
+<!-- Footer panel --> 
+<div class="line-footer"></div>
+<footer id="footer">
+<center>
+    <a href='http://www.freevisitorcounters.com'>&nbsp;</a> <script type='text/javascript' src='https://www.freevisitorcounters.com/auth.php?id=bdd86ca03bf3709e4523bf44ac939417956604f4'></script>
+<script type="text/javascript" src="https://www.freevisitorcounters.com/en/home/counter/832947/t/5"></script>
+
+ </center>
+</footer> 
+<!-- END OF FOOTER  -->                     
+	        <div class="footer">
+		    <center><font size=1>   Copyright &copy; C. Peng 2019-<script>document.write(new Date().getFullYear());</script> 
+                All rights reserved.</font></center>
+	        </div>
+                    
+	      </div>
+    	</nav>
+           
+
+        <!--MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM--> 
+        <!-- MMMMMMMMMMMMMMMMMMM  Top Naviagtion Panel MMMMMMMMMMMMMMMMM-->
+        <!--MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM--> 
+        <!-- Page Content  -->
+        <div id="content" class="p-4 p-md-8">
+
+        <nav class="navbar navbar-expand-lg navbar-light bg-light">
+          <div class="container-fluid">
+
+            <button type="button" id="sidebarCollapse" class="btn btn-primary">
+              <i class="fa fa-bars"><b>&nbsp;  Module 08</b></i>
+              <span class="sr-only">Toggle Menu</span>
+            </button>
+      
+            <!--button>
+                <i class="fa fa-bars"></i>
+            </button-->
+
+            <div class="collapse navbar-collapse" id="navbarSupportedContent">
+              <ul class="nav navbar-nav ml-auto">
+
+               
+                  
+                <li class="nav-item active" >
+                    <a class="nav-link" href="w00/Spring2026-Syllabus.pdf"  target="popup" 
+                       onclick="window.open('w00/Spring2026-Syllabus.pdf','name','width=900,height=500')"><font color = "purple"><b>Syllabus</b></font></a>
+                </li>
+
+              <li class="dropdown"><a href=""  class="nav-link dropdown-toggle" data-toggle="dropdown"><font color = "purple"><b>Calenders</b></font><b class="caret"></b></a> 
+                        <!-- Drop-down manual-->
+                    <ul class="dropdown-menu">      
+                    <li class="navitem active"> <a href="https://www.wcupa.edu/registrar/calendar/documents/Spring2026AcademicCalendar01.25.pdf"  target="popup" onclick="window.open('https://www.wcupa.edu/registrar/calendar/documents/Spring2026AcademicCalendar01.25.pdf', 'name','width=900,height=500')"  class="dropdown-item">Academic Calendar</a></li>
+                    
+                    <li class="navitem active"> <a href="https://www.wcupa.edu/registrar/calendar/documents/Spring2026FinalExams10.25.pdf"  target="popup" onclick="window.open('https://www.wcupa.edu/registrar/calendar/documents/Spring2026FinalExams10.25.pdf', 'name','width=900,height=500')"  class="dropdown-item">Final Exam Schedule</a></li>
+                     </ul>
+                   </li>
+                     
+<!--########################################################################-->
+<!--SSSSSSSSSSSSSSSSSSSSSS    Dropdown tag: Computing   SSSSSSSSSSSSSSSSSSSS-->
+<!--########################################################################-->
+
+               <li class="dropdown"><a href=""  class="nav-link dropdown-toggle" data-toggle="dropdown"><font color = "purple"><b>Computing Tools</b></font><b class="caret"></b></a>
+                   <ul class="dropdown-menu">
+                                         
+                   <li class="nav-item active"> <a class="nav-link" href="https://bookdown.org/yihui/rmarkdown/" target="popup" onclick="window.open('https://bookdown.org/yihui/rmarkdown/','name','width=900,height=500')" class="dropdown-item"><font color = "purple">RMarkdown</font></a></li>               
+                   
+                    <li class="nav-item active"> <a class="nav-link" href="https://github.com/pengdsci" target="popup" onclick="window.open('https://github.com/pengdsci','name','width=900,height=500')" class="dropdown-item"><font color = "purple">Github</font></a></li>
+                       
+                    <li class="nav-item active"> <a class="nav-link" href="https://rpubs.com/" target="popup" onclick="window.open('https://rpubs.com/','name','width=900,height=500')" class="dropdown-item"><font color = "purple">RPubs</font></a></li>                       
+                     </ul>
+               </li>
+                  
+                <!--li class="nav-item active">
+                    <a class="nav-link" href="https://pengdsci.github.io/datasets/"  target="popup" onclick="window.open('https://pengdsci.github.io/datasets/','name','width=900,height=500')"><font color = "purple"><b>Data</b></font></a>
+                </li-->
+                  
+                <li class="nav-item active">
+                    <a class="nav-link" href="https://wcupa.zoom.us/j/6840171840?pwd=ZC90eHk4OUJ5QUlnUzdCUEd2cW5VZz09" target="popup" 
+                       onclick="window.open('https://wcupa.zoom.us/j/6840171840?pwd=ZC90eHk4OUJ5QUlnUzdCUEd2cW5VZz09',                                             'name','width=900,height=500')"><font color = "purple"><b>Zoom</b></font></a>
+                </li>
+                  
+                <li class="dropdown"><a href="" class="nav-link dropdown-toggle" data-toggle="dropdown"> <font color = "purple"><b>Office Hours</b></font><b class="caret"></b></a>
+                   <ul class="dropdown-menu">   
+
+                        <li class="navitem active"><center><b>Tuesday</b> <br><font size=2 color="purple"> 12:30PM-2:00PM</font></center></li>
+                        <li class="navitem active"><center><b>Wednesday</b> <br> <font size=2 color="purple">3:00PM-5:00PM</font></center></li>
+                        <li class="navitem active"><center><b>Thursday</b> <br><font size=2 color="purple">12:30PM-2:00PM</font></center></li>
+                      </ul>
+                 </li>              
+                  
+                <li class="nav-item active">
+                    <a class="nav-link" href="https://d2l.wcupa.edu/d2l/login" target="popup" 
+                       onclick="window.open('https://d2l.wcupa.edu/d2l/login','name','width=900,height=500')"><font color = "purple"><b>D2L</b></font></a>
+                </li>
+                  
+                <li class="nav-item active">
+                    <a class="nav-link" href ="mailto: cpeng@wcupa.edu"  target="popup" 
+                       onclick="window.open('mailto: cpeng@wcupa.edu','name','width=900,height=500')"><font color = "purple"><b>Email Me</b></font></a>
+                </li>
+              </ul>
+            </div>
+              
+          </div>
+             
+        </nav>
+
+
+
+
+
+  <!-- MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM-->
+  <!-- MMMMMMMMMMMMMMMMM  Weekly Material (Updated Every Week)  MMMMMMMMMMMMMMM-->
+  <!-- MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM-->
+  <!--div class="container sec"-->
+            
+  <center>
+      <font style="font-variant: small-Caps; font-family: Arial, sans-serif; font-size: 18px; font-weight:400; color:darkmagenta; ">8. Exact and Likelihood-based Asymptotic Confidence Intervals</font>       
+            
+            </center>          
+    <br>
+            
+  <table border = "0" class="table table-striped" 
+                      style="max-width: 1100px; margin-left: auto; margin-right: auto; background-color:gray8;">
+  <colgroup>
+     <col span="1" style="width: 50%;">
+     <col span="1" style="width: 6%;">
+     <col span="1" style="width: 44%;">
+   </colgroup>
+
+  <tr>
+       <th bgcolor="#C0C0C0"><font style="font-variant: small-Caps; font-family: Arial, sans-serif; font-size: 14px; font-weight: 600; color: #004466 ">  Topics, Class Notes and Code</font></th>
+       <th bgcolor="#C0C0C0">  </th>
+       <th bgcolor="#C0C0C0"><font style="font-variant: small-Caps; font-family: Arial, sans-serif; font-size: 14px; font-weight: 600; color: #004466 ">  Assignments and Recommended Readings  </font></th>
+  </tr>
+  
+  <!-- Week 01 -->
+  <tr>
+
+    <td> <ul>
+          <li> Confidence Intervals: Concepts and Goodness Measures </li>
+          <li> Pivotal Quantity </li>
+           <ul>
+            <li>Definition and examples</li>
+            <li>How quantity is used to construct CI</li>
+           </ul>
+          <li> Steps for Pivotal Quantity-based CI</li>
+          <li> Exact and CLT-based Asymptotic CIs </li>
+           <ul>
+            <li>CIs for normal populations and variances</li>
+            <li>Large sample CI for population means and proportions</li>
+           </ul>
+          <li> CI Based on Asymptotic Normality </li>
+          <li> Likelihood Ratio Confidence Intervals</li>
+         <li> Notes and code </li>
+         <ul>
+             <li> <font color = "red"><b> Lecture Note </b></font>
+                   <a href="w08/08-CI.html" target="popup" 
+                   onclick="window.open('w08/08-CI.html','name','width=900,height=500')"> 
+                   [HTML] </a>  </li>
+         </ul>
+        </ul>
+    </td><td></td>
+
+     <td><ul>
+         <li>Some Additional Notes on Likelihood Estimations </li>
+          <ul>
+         <li> Likelihhod-based Point Estimations:
+            <a href="w08/MLE-PointEstimation-1.pdf" target="popup" onclick="window.open('w08/MLE-PointEstimation-1.pdf,'name','width=900,height=500')">[Part I]</a>
+             <a href="w08/MLE-PointEstimation-2.pdf" target="popup" onclick="window.open('w08/MLE-PointEstimation-2.pdf','name','width=900,height=500')">[Part II]</a></li>
+         <li> Likelihood-based Asymptotic Confidence Intervals:
+            <a href="w08/Asymptotic-CI-1.pdf" target="popup" 
+             onclick="window.open('w08/Asymptotic-CI-1.pdf','name','width=900,height=500')">[Part I]</a>
+              <a href="w08/Asymptotic-CI-2.pdf" target="popup" onclick="window.open('w08/Asymptotic-CI-2.pdf','name','width=900,height=500')">[Part II]</a></li>
+          </ul>       
+         <li>R Functions for Nonlinear Equations</li>
+         <ul>
+           <li><code>uniroot()</code>: Package <b>base</b></li> 
+           <li><code>uniroot.all()</code>: package <b>rootSolve</b></li>
+           <li><code>nleqslv()</code>: package <b>nleqslv</b></li>
+         </ul>
+         <li>A note for mathematical algorithms for solving nonlinear equations: <a href="https://rpubs.com/abgylrchmn/666147" target="popup" 
+                   onclick="window.open('https://rpubs.com/abgylrchmn/666147,'name','width=900,height=500')">  [Link]</a></li>
+         <li><font color = "blue"> <b>Written Assignment</b></font></li>
+         <ul>
+         <li> <font color = "red">Guidelines</font> <a href="w08/08-assignment.html" target="popup" 
+                   onclick="window.open('w08/08-assignment.html','name','width=900,height=500')"> 
+                   [HTML] </a> </li>
+         <li><font color="red"><b>Due</b>:Thursday, 3/24/2026</font></li>
+        </ul>
+     </ul>
+    </td>
+  </tr>
+</table>
+
+</div>
+ </div>
+</div>
+
+    <script src="js/jquery.min.js"></script>
+    <script src="js/popper.js"></script>
+    <script src="js/bootstrap.min.js"></script>
+    <script src="js/main.js"></script>
+      
+ </TD></TR>
+ </TBODY></TABLE>
+  <br><br><br>
+</center> 
+       
+      
+      
+  </body>
+</html>
