@@ -1,0 +1,257 @@
+---
+title: "Assignment 9: Hypothesis Testing and Power and Sample size Determination"
+author: "Your Name "
+date: " Due: "
+output:
+  html_document: 
+    toc: yes
+    toc_depth: 4
+    toc_float: yes
+    number_sections: no
+    toc_collapsed: yes
+    code_folding: hide
+    code_download: yes
+    smooth_scroll: yes
+    highlight: monochrome
+    theme: spacelab
+  word_document: 
+    toc: yes
+    toc_depth: 4
+    fig_caption: yes
+    keep_md: yes
+  pdf_document: 
+    toc: yes
+    toc_depth: 4
+    fig_caption: yes
+    number_sections: yes
+    fig_width: 3
+    fig_height: 3
+editor_options: 
+  chunk_output_type: inline
+---
+
+```{css, echo = FALSE}
+#TOC::before {
+  content: "Table of Contents";
+  font-weight: bold;
+  font-size: 1.2em;
+  display: block;
+  color: navy;
+  margin-bottom: 10px;
+}
+
+
+div#TOC li {     /* table of content  */
+    list-style:upper-roman;
+    background-image:none;
+    background-repeat:none;
+    background-position:0;
+}
+
+h1.title {    /* level 1 header of title  */
+  font-size: 22px;
+  font-weight: bold;
+  color: DarkRed;
+  text-align: center;
+  font-family: "Gill Sans", sans-serif;
+}
+
+h4.author { /* Header 4 - and the author and data headers use this too  */
+  font-size: 15px;
+  font-weight: bold;
+  font-family: system-ui;
+  color: navy;
+  text-align: center;
+}
+
+h4.date { /* Header 4 - and the author and data headers use this too  */
+  font-size: 18px;
+  font-weight: bold;
+  font-family: "Gill Sans", sans-serif;
+  color: DarkBlue;
+  text-align: center;
+}
+
+h1 { /* Header 1 - and the author and data headers use this too  */
+    font-size: 20px;
+    font-weight: bold;
+    font-family: "Times New Roman", Times, serif;
+    color: darkred;
+    text-align: center;
+}
+
+h2 { /* Header 2 - and the author and data headers use this too  */
+    font-size: 18px;
+    font-weight: bold;
+    font-family: "Times New Roman", Times, serif;
+    color: navy;
+    text-align: left;
+}
+
+h3 { /* Header 3 - and the author and data headers use this too  */
+    font-size: 16px;
+    font-weight: bold;
+    font-family: "Times New Roman", Times, serif;
+    color: navy;
+    text-align: left;
+}
+
+h4 { /* Header 4 - and the author and data headers use this too  */
+    font-size: 14px;
+  font-weight: bold;
+    font-family: "Times New Roman", Times, serif;
+    color: darkred;
+    text-align: left;
+}
+
+/* Add dots after numbered headers */
+.header-section-number::after {
+  content: ".";
+
+body {background-color: #ffffff;
+      color: #000000;
+      font-family: Arial, sans-serif;
+      font-size: 1rem;
+      line-height: 1.6;
+      }
+
+.highlightme { background-color:yellow; }
+
+p { background-color:white; }
+
+}
+```
+
+```{r setup, include=FALSE}
+# code chunk specifies whether the R code, warnings, and output 
+# will be included in the output files.
+if (!require("knitr")) {
+   install.packages("knitr")
+   library(knitr)
+}
+if (!require("pander")) {
+   install.packages("pander")
+   library(pander)
+}
+if (!require("ggplot2")) {
+  install.packages("ggplot2")
+  library(ggplot2)
+}
+if (!require("tidyverse")) {
+  install.packages("tidyverse")
+  library(tidyverse)
+}
+
+if (!require("plotly")) {
+  install.packages("plotly")
+  library(plotly)
+}
+
+if (!require("VGAM")) {
+  install.packages("VGAM")
+  library(VGAM)
+}
+#### VGAM
+knitr::opts_chunk$set(echo = TRUE,       # include code chunk in the output file
+                      warning = FALSE,   # sometimes, you code may produce warning messages,
+                                         # you can choose to include the warning messages in
+                                         # the output file. 
+                      results = TRUE,    # you can also decide whether to include the output
+                                         # in the output file.
+                      message = FALSE,
+                      comment = NA
+                      )  
+```
+ 
+ \
+ 
+## **Assignment Objectives** 
+
+<p>
+* Enhance understanding the logic and procedure of hypothesis testing .
+
+* Implement the procedures for power and sample size calculation for basic hypothesis testing procedures using nuilt-in function and manual calculation.
+</p>
+
+
+## **Policies of Using AI Tools**
+
+<p>
+**Policy on AI Tool Use**: Please adhere to the AI tool policy specified in the course syllabus. The direct copying of AI-generated content is strictly prohibited. All submitted work must reflect your own understanding; where external tools are consulted, content must be thoroughly rephrased and synthesized in your own words.
+</p>
+
+<p>
+**Code Inclusion Requirement**: Any code included in your essay must be properly commented to explain the purpose and/or expected output of key code lines. Submitting AI-generated code without meaningful, student-added comments will not be accepted.
+</p>
+
+
+## **Simple versus Composite Hypothesis*
+
+**Simple Hypothesis**
+
+* **Simple Hypothesis Test** is a hypothesis that completely specifies the population distribution. Mathematically, simple hypothesis fixes all parameters to specific values. For example, The simple hypotheses are: $H_0: \mu = 5$ (if $\alpha$ is known), $H_0: \mu = 100, \sigma^2 = 25$, and $H_1: p = 0.7$ for a Bernoulli distribution.
+
+* **Example Scenario**  Test if a coin is fair:
+
+\begin{aligned}
+H_0&: p = 0.5 \quad \text{(completely specified)} \\
+H_1&: p = 0.6 \quad \text{(also completely specified)}
+\end{aligned}
+
+Both are **simple** hypotheses.
+
+**Composite Hypothesis**
+
+* **Composite Hypothesis** is a hypothesis that does not completely specify the distribution. Mathematically, it allows a range of values for at least one parameter. For example, in one-sided: $\mu >5$; in two-sided: $\mu \le 5$.
+
+* **Example Scenarios** 
+
+
+\begin{aligned}
+&H_0: \mu = 5 && \text{(simple)} \\
+&H_1: \mu > 5 && \text{(composite)}
+\end{aligned}
+
+
+
+\begin{aligned}
+&H_0: \mu \leq 5 && \text{(composite)} \\
+&H_1: \mu > 5 && \text{(composite)}
+\end{aligned}
+
+
+\begin{aligned}
+&H_0: \text{data follows } N(\mu, 1), \mu = 0 && \text{(simple)} \\
+&H_1: \text{data follows Poisson}(\lambda) && \text{(composite – different family)}
+\end{aligned}
+
+
+
+<p><font color = "darkred">**This assignment focuses on performing performing a test of mean ($\mu$) a normal population and calculating the power and sample size based on various assumptions**</font></p>
+
+
+\
+
+## **Question: New Cholesterol Medication**
+
+<p>
+A pharmaceutical company develops **"CholestFix"** to reduce Low-Density Lipoprotein (LDL, *fat carrier that's low in density*) cholesterol. The **current standard drug** lowers LDL by an average of 25 mg/dL with a standard deviation of 15 mg/dL. A clinical trial with 5 participants were recruited in the study for three months. At the end of the study, the mean reduction is 29 mg/dL. Assume that the variance of LDL reduction of new drug is the same as that of the standard drugs.
+
+Based on the results in the clinical trial, researchers in the company believe **CholestFix** is more effective.
+</p>
+
+
+<p>
+a). Perform a formal hypothesis test of the researchers’ belief regarding LDL reduction, using a significance level of $\alpha = 0.05$.
+
+b). Given $n = 50, \sigma = 15, \alpha = 0.05$, and an effect size we wish to detect $\delta = 4$ mg/dL (corresponding to a reduction from 29 mg/dL to 25 mg/dL).  What is the probability that we'd detect a true improvement?
+
+
+c). Determine the minimum sample size required to detect an effect size of 4 mg/dL with a power of $1 - \beta = 0.8$  and a significance level of $\alpha = 0.05$. Assume the standard deviation of LDL reduction is 15 mg/dL.
+
+d). **Power curve**: To assess the impact of sample size on power, we can create a power function in terms of the sample size $n$ and use the remaining information from part (b). Plot the power curve by selecting a sequence of sample sizes.
+</p>
+
+
+<font color = "red">**Note**: For each of the questions above, write a short summary of what you observed, justify why your analysis is valid, and interpret the results.</font>
+
