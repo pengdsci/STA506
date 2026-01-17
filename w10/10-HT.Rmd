@@ -1,5 +1,5 @@
 ---
-title: "Foundmentals of Hypothesis Testing"
+title: "Fundamentals of Hypothesis Testing and Power Analysis"
 author: "Cheng Peng"
 date: "West Chester University"
 output:
@@ -605,7 +605,7 @@ print(result)
 
 
 
-#  Power Analysis (Optional)
+#  Power Analysis 
 
 Effect size, statistical power, and sample size determination form the statistical trinity for designing robust experiments and studies. We will first briefly outline the components of this trinity before presenting an example.
 
