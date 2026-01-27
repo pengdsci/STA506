@@ -276,6 +276,17 @@ ggplotly(pdf.plt)
 ```
 
 
+The relationship between CDF and PDF are depicted by the following animated graph.
+
+```{r fig.align='center', out.width= "49%", fig.alt="Animated graph depicting relationship between CDF and PDF", fig.cap="The botton left-tail area of the PDF is equal to the the heigh of the top CDF"}
+include_graphics("CDFandPDF.gif")
+```
+
+
+
+
+
+
 # Survival Function
 
 The Survival Function gives the probability that a random variable with density $f(x)$ exceeds a certain value ($x$):
@@ -390,9 +401,9 @@ ggplotly(haz.plt)
 ```
 
 
-# Distribution Estimation
+# Estimation of CDF and PDF
 
-We only foxus on the nonparametric estimation of CDF and PDF in this section.
+We only focus on the nonparametric estimation of CDF and PDF in this section.
 
 ## Empirical Distribution Function (EDF)
 
@@ -643,7 +654,7 @@ $$
 \
 
 
-**Example**: Effect of binwidth in Kernel Density Estimation. We still use the 2-component Gaussian mixture as an example. The three bandwidths used in the example are $h = 0.5$ (default), 0.2 and 1.
+**Example**: Effect of binwidth in **Kernel Density Estimation**. We still use the 2-component Gaussian mixture as an example. The three bandwidths used in the example are $h = 0.5$ (default), 0.2 and 1.
 
 ```{r}
 # Generate sample data
@@ -939,16 +950,31 @@ kable(summary_table, caption = "Summary of Distribution Functions and Estimators
 ```
 
 
-**Key Points**
+**Key Points and Future Applications**
 
-* CDF provides complete information about the distribution of a random variable
+* CDF/ECDF provides complete information about the distribution of a random variable. It is widely used in
+  + Classical Statistics
+    - Finding quantiles which is the inverse of CDF, $F^{-1}(p)$, with $p = $ left-tail probability.
+    - Defining goodness-of-fit tests that measures the discrepancy between two distributions.
+    - Generating random numbers in simulations studies.
+  + Data Science
+    - ROC curves to compare two classification models/algorithms.
+    - Anomaly/novelty detection focus on the tail probability $1 - F(t)$.
+    - Exploratory data analysis (EDA) and visualization 
 
-* PDF describes the relative likelihood of a continuous random variable
-
-* Survival and Hazard functions are essential for time-to-event data analysis
-
-* Empirical CDF is a non-parametric estimator that converges to the true CDF
+* PDF describes the relative likelihood of a continuous random variable. It is used in both parametric and nonparametric methods.
+  + Parametric Statistical Models
+    - Likelihood-based inference with applications in all areas with medium sized data sets
+    - Bayesian modeling (to be introduced in the last part of this semester)
+  + Distribution-free (through kernel density estimation) Applications in Statistics and Data Science
+    - Modeling different processes with no specific parametric distributions
+    
+* Survival (S) and Hazard (h) functions are essential for survival and reliability analysis
 
 * Kernel Density Estimation provides smooth PDF estimates but requires careful bandwidth selection
 
 * The choice of kernel typically has less impact than bandwidth selection in KDE
+
+
+
+
