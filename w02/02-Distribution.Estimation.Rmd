@@ -252,7 +252,7 @@ $$
 **Example**: The graphical representation of the **standard normal distribution PDF**:
 
 $$
-\phi(x) = \frac{1}{\sqrt{2\pi}}\exp\left[\frac{x^2}{2}\right]
+\phi(x) = \frac{1}{\sqrt{2\pi}}\exp\left[-\frac{x^2}{2}\right]
 $$
 
 ```{r}
@@ -331,7 +331,7 @@ ggplotly(surv.fun.plt)
 The Hazard Function (or hazard rate) represents the instantaneous failure rate at time $x$, given survival up to time $x$:
 
 $$
-\lambda(x)=\lim_{\Delta\to 0} \frac{P(x\le X< {x+\Delta x}|X \ge x)}{\Delta x}. 
+\lambda(x)=\lim_{\Delta x\to 0} \frac{P(x\le X< {x+\Delta x}|X \ge x)}{\Delta x}. 
 $$ 
  
 Note that
@@ -341,14 +341,17 @@ P(x\le X< x+\Delta x) = \int_x^{x+\Delta x} f(t)dt \approx f(x)\Delta x
 $$
 
 $$
-P(x\le X< x+\Delta x|X \ge x) = \frac{P(x\le X< x+\Delta x \cap X \ge x)}{P(X \ge x)} = \frac{f(x)\Delta x}{S(x)}
+P(x\le X< x+\Delta x|X \ge x) = \frac{P(x\le X< x+\Delta x \cap X \ge x)}{P(X \ge x)} \approx \frac{f(x)\Delta x}{S(x)}
 $$
 
 Therefore
 
 $$
-\lambda(x)=\lim_{\Delta\to 0} \frac{P(x\le X< {x+\Delta x}|X \ge x)}{\Delta x} = \frac{f(x)}{S(x)}. 
+\lambda(x)=\lim_{\Delta x\to 0} \frac{P(x\le X< {x+\Delta x}|X \ge x)}{\Delta x} \approx \frac{f(x) \Delta x/S(x)}{\Delta x}= \frac{f(x)}{S(x)}. 
 $$ 
+
+
+$\lambda (x)$ is also called failure rate function.
 
 
 
@@ -401,6 +404,13 @@ ggplotly(haz.plt)
 ```
 
 
+
+
+
+
+
+
+
 # Estimation of CDF and PDF
 
 We only focus on the nonparametric estimation of CDF and PDF in this section.
@@ -417,11 +427,17 @@ where $I(\cdot)$ is the indicator function.
 
 **Properties**:
 
-* **Consistent estimator** of the true CDF
+* **Consistent estimator** of the true CDF, following the Glivenko–Cantelli Theorem. As more data are collected, the ECDF becomes arbitrarily close to the true CDF **uniformly across** all points on the real line, i.e., $\sup_x|F_n(x)−F(x)|\to 0$ almost everywhere.
 
 * Step function with jumps at observed data points
 
-* Unbiased estimator
+* Asymptotically Unbiased estimator: $\lim_{n \to \infty} E[\hat{F}_n(x)] = F(x)$.
+
+
+<font color = "red">**Because of these favorable properties, $F_n(x)$ serves as a reference estimator for comparing other estimators of an unknown $F(x)$ based on a given data set.**</font>
+
+
+
 
 
 **Example**: Empirical Distribution
@@ -455,6 +471,8 @@ Fn.plt <- ggplot(plot_df_long, aes(x = x, y = CDF, color = Type)) +
         plot.margin = margin(t = 35, r = 20, b = 30, l = 30, unit = "pt"))
 ggplotly(Fn.plt)
 ```
+
+
 
 
 ## Kernel Density Estimation (KDE)
