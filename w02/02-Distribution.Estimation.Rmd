@@ -507,12 +507,34 @@ We will use the Gaussian kernel as an example; other kernels can be explained si
 
 2. As $(x - X_i)/h \to 0$, $K[(x - X_i)/h] \to \text{maximum}$. This implies that data values that are closer to the given value $x$ will contribute more to the value of the density at $x$. In other words, kernel is an **implicit weight function**.
 
-The following figure shows the above logic.
+The following figure shows the above logic based on a small data set with 3 data points. Instead of using discrete bins, **KDE** places a **smooth kernel function** (e.g., Gaussian) at each data point ($P_1$, $P_2$,and $P_3$ in the following figure) and sums them (|AB|, |AC|, and |AD| in the following figure) to produce a smooth density curve.
 
-```{r  echo = FALSE, fig.align='center', out.width= "70%"}
-include_graphics("KernelWeight.png")
+
+```{r echo = FALSE, fig.align='center', out.width="80%"}
+include_graphics("3pts-KDE.png")
 ```
 
+The following steps show how **KDE** works: 
+
+**Step 1**: Place a kernel at each data point.
+
+**Step 2**: Sum all kernels to form the density estimate.
+
+**Step 3**: Bandwidth (h) controls smoothness:
+
+  + Small *h* → Wiggly, overfitted estimate.
+  + Large *h* → Over-smoothed estimate.
+
+\
+
+The following animated chart shows the process of FDE with five points.
+
+
+```{r echo = FALSE, fig.align='center', out.width="80%"}
+include_graphics("KDE.gif")
+```
+
+\
 
 **To understand the role of $h$ in the kernel density estimator**, we examine the Gaussian kernel.
 
