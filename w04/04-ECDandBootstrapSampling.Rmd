@@ -672,21 +672,5 @@ plot(boot_results)
 -   **BCa intervals**: $B \geq 5000$ for stable results
 -   **Percentile methods**: Larger $B$ for accurate tail estimation
 
-# Summary
-
-**Key Takeaways**
-
--   **Empirical Distribution Function** provides nonparametric estimate of CDF
--   **Bootstrap** samples from EDF to approximate sampling distribution
--   **Implementation in R** is straightforward with **sample()** or **{boot}** package
--   **Applications** include standard error estimation, confidence intervals, bias correction
--   **Multiple methods** exist (percentile, BCa) with different properties
-
-**Practice Exercise**
-
--   Implement a bootstrap procedure for median estimation
--   Compare bootstrap standard errors with asymptotic approximations
--   Investigate how bootstrap performance changes with sample size using simulation
--   Apply bootstrap to a real dataset of your choice
 
 
