@@ -9,7 +9,7 @@ output:
     toc_float: yes
     number_sections: yes
     toc_collapsed: yes
-    code_folding: show
+    code_folding: hide
     code_download: yes
     smooth_scroll: yes
     highlight: monochrome
@@ -436,8 +436,8 @@ mom_mu <- mean(sample_data)
 mom_sigma_sq <- mean(sample_data^2) - mom_mu^2
 mom_sigma <- sqrt(mom_sigma_sq)
 
-cat("True parameters: μ =", true_mu, ", σ =", true_sigma, "\n")
-cat("MoM estimates: μ_hat =", round(mom_mu, 3), 
+cat("  True parameters: μ =", true_mu, ", σ =", true_sigma, "\n",
+ "   MoM estimates: μ_hat =", round(mom_mu, 3), 
     ", σ_hat =", round(mom_sigma, 3), "\n")
 ```
 
@@ -502,8 +502,8 @@ m2 <- mean(sample_gamma^2)
 mom_beta <- m1 / (m2 - m1^2)
 mom_alpha <- m1 * mom_beta
 
-cat("True parameters: α =", true_alpha, ", β =", true_beta, "\n")
-cat("MoM estimates: α_hat =", round(mom_alpha, 3), 
+cat("  True parameters: α =", true_alpha, ", β =", true_beta, "\n",
+     "   MoM estimates: α_hat =", round(mom_alpha, 3), 
     ", β_hat =", round(mom_beta, 3), "\n")
 ```
 
