@@ -1,5 +1,5 @@
 ---
-title: "Maximum Likelihood Estimation (MLE)"
+title: "Optimization Techniques: Numerical Methods"
 author: "Cheng Peng"
 date: "West Chester University"
 output:
