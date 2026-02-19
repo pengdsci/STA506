@@ -261,7 +261,7 @@ $$
 **Example**: Consider Poisson distribution 
 
 $$
-P(X=k) = \frac{\lambda^k e^{-\lambda}}{k!}, \ \ \lambda = 0, 1, 2, \cdots
+P(X=k) = \frac{\lambda^k e^{-\lambda}}{k!}, \ \ k = 0, 1, 2, \cdots
 $$
 
 Based on the above definition of the Fisher Information of $\lambda$, we calculate $I_0(\lambda)$ in the following steps
@@ -415,7 +415,7 @@ $$
  $$
  \begin{align*}
 \hat{\mu} &= \frac{1}{n} \sum_{i=1}^n X_i & = \bar{X} \\
-\hat{\sigma}^2  &= \frac{1}{n} \sum_{i=1}^n X_i^2 - \bar{X}^2 &= \frac{1}{n}\sum_{i=1}^n(X_i-\bar{X})^2
+\widehat{\sigma^2}  &= \frac{1}{n} \sum_{i=1}^n X_i^2 - \bar{X}^2 &= \frac{1}{n}\sum_{i=1}^n(X_i-\bar{X})^2
 \end{align*}
  $$
  
@@ -614,6 +614,19 @@ A detailed discussion of numerical optimization is beyond the scope of this cour
 
 We now complete the method of moments estimation (MME) for the Weibull parameters discussed earlier, which requires a numerical solution. The procedure will use the R built-in function `optimize()`, an implementation of Brent's method.
 
+Recall that the equation to solve is
+
+$$
+g(k) = \frac{\Gamma\left(1 + \frac{2}{k}\right)}{\left[\Gamma\left(1 + \frac{1}{k}\right)\right]^2} - \frac{m_2}{m_1^2} 
+$$
+
+Next we use simulated data from the Weibull distribution with $k = 2.5$ and $\lambda = 3$.
+
+
+
+## Using `uniroot()`
+
+The `uniroot()` function in R finds the root (zero) of a continuous function over a specified interval. Using Brent's algorithm, it requires the function to take opposite signs at the interval endpoints—ensuring at least one root lies within. Since $g(k)$ is a single variable function, we can plot the function and identify the interval visually.
 
 ```{r}
 # Set seed for reproducibility
@@ -627,6 +640,63 @@ true_scale <- 3.0
 n <- 1000
 x <- rweibull(n, shape = true_shape, scale = true_scale)
 
+## Finding the first and 2nd moments
+m1 <- mean(x)
+m2 <- mean(x^2)
+
+# refer to the last formula in Section 4, the g() must be written as a function of k
+# in the following. k is the shape parameter
+
+gk <- function(k){
+  (gamma(1+2/k) / ((gamma(1+1/k))^2)) - m2/m1^2
+}
+
+## identify end values of the interval that contains the root
+## Since this a single variable function, we can curve the function
+## and then find the interval
+
+# Create a data frame with x values and corresponding y values
+x_vals <- seq(1, 5, length.out = 50)
+dframe <- data.frame(x = x_vals, y = gk(x_vals))
+##
+gk.plot <- ggplot(dframe, aes(x = x, y = y)) +
+  geom_line(color = "steelblue", size = 1) +
+  geom_hline(yintercept = 0, linetype = "dashed", alpha = 0.5) +  # x-axis
+  geom_vline(xintercept = 0, linetype = "dashed", alpha = 0.5) +  # y-axis
+  labs(title = "The curve of function g(k)",
+       x = "k", 
+       y = "g(k)") +
+    theme(plot.title = element_text(hjust = 0.5),
+        plot.margin = margin(t = 35, r = 20, b = 30, l = 30, unit = "pt"))
+ggplotly(gk.plot)
+```
+
+
+As the curve above indicates the root lies in (2, 3), we now call uniroot() in R to solve $g(k) = 0$ and obtain the MME of the scale parameter $\lambda$.
+
+```{r}
+## uniroot() to find k
+k <- uniroot(gk, interval = c(2, 3))$root
+## find the scale parameter
+## refer to the equation in step 4
+lambda <- m1/gamma(1+1/k)
+pander(cbind(k = k, lambda = lambda))
+```
+
+
+
+## Using `Optimize()`
+
+The R function `optimize()` is used for one-dimensional optimization—finding the minimum or maximum of a function over a specified interval. However, it requires an objective function, denoted by $f(k)$, such that the solution to $f'(x) = 0$ is equivalent to $g(x) = 0$. One such choice is to let $f(k) = [g(k)]^2$. Note that $g'(k) < 0$ (as seen from the curve of $g(k)$ above).
+
+$$
+f'(k) = 2g'(k)g(k) = 0 \quad  \text{is equivalent to} \quad g(k) = 0
+$$
+
+In the following, we will use $f(k)$ as the objective function and employ optimize() to find the root of $g(k) = 0$.
+
+
+```{r}
 # Alternative approach using optim()
 weibull_mom_optim <- function(x) {
   m1 <- mean(x)
@@ -650,6 +720,9 @@ weibull_mom_optim <- function(x) {
 
 weibull_mom_optim(x)
 ```
+
+
+## Graphical Comparisons
 
 The above numerical example simulated data from Weibull distribution with shape = 2.5 and scale = 3. Next, we compare the estimated density (parametric), non-parametric kernel density, and true density. 
 
