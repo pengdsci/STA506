@@ -238,15 +238,15 @@ $$
 
 To find the MLE, we typically:
 
-* Write the likelihood function $L(\theta|\mathbf{x})$
+* Write the likelihood function $L(\theta|\mathbf{x})$ - <font color = "blue">a function of parameter(s) $\theta$ since $\mathbf{x}$ is observed.</font>
 
-* Take the natural logarithm to get $\ell(\theta|\mathbf{x})$
+* Take the natural logarithm to get $\ell(\theta|\mathbf{x})$ - <font color = "blue"> converting multiplication to addition that make algebra easier.</font>
 
-* Differentiate with respect to $\theta$
+* Differentiate with respect to $\theta$ - <font color = "blue"> When differentiating with respect to parameters in a multiparameter setting, be sure to take partial derivatives separately for each of the two parameters.</font> <font color = "red"> These derivatives are also called gradients and score functions.</font>
 
-* Set the derivative equal to zero
+* Set the derivative equal to zero - <font color = "blue">also called score equation.</font>
 
-* Solve for $\theta$
+* Solve for $\theta$ - <font color = "blue">This typically requires numerical procedures to approximate the solution.</font>
 
 The equation $\frac{\partial \ell(\theta|\mathbf{x})}{\partial \theta} = 0$ is called the likelihood equation.
 
@@ -456,6 +456,11 @@ $$
 and we solve $g(k) - 1/k = 0$ iteratively.
 
 
+<font color = "red">**We have practiced solving this type of univariate nonlinear equation in previous assignments using various R built-in functions. In the following sections, we will use the more general-purpose built-in function optim() to solve systems of nonlinear equations.**</font>
+
+
+
+
 # Numerical Implementation Using R
 
 
@@ -491,6 +496,7 @@ print(weibull.fit.mass)
 
 The following code implements the MLE from the objective function directly. The process of finding the MLE of population parameters applies to any new distributions that are not available in existing R libraries. The key optimization R function to be used is `optim()` in the base package.
 
+### Optimization with No Gradient
 
 ```{r}
 # Manual MLE implementation for Weibull distribution
@@ -509,21 +515,6 @@ weibull.loglik <- function(params, data) {
   return(-loglik)  # Return negative for minimization
 }
 
-# Alternative parameterization (often more stable)
-weibull.loglik.alt <- function(params, data) {
-  k <- params[1]  # shape
-  lambda <- params[2]  # scale
-  
-  if (k <= 0 | lambda <= 0) return(1e10)  # Penalize invalid parameters
-  
-  n <- length(data)
-  term1 <- n * log(k) - n * k * log(lambda)
-  term2 <- (k - 1) * sum(log(data))
-  term3 <- -sum((data / lambda)^k)
-  
-  return(-(term1 + term2 + term3))  # Negative log-likelihood
-}
-
 # Perform optimization
 initial.params <- c(shape = 2.2, scale = 1.5)  # Reasonable starting values
 
@@ -532,13 +523,74 @@ mle.result <- optim(
   par = initial.params,
   fn = weibull.loglik,
   data = sample.data,
-  #method = "Nelder-Mead",
   hessian = TRUE
 )
 ##
 mle.result
 ```
 
+
+### Optimization with Gradient
+
+```{r}
+# Manual MLE implementation for Weibull distribution
+# Weibull log-likelihood function
+weibull.loglik <- function(params, data) {
+  shape <- params[1]  # passing the parameters
+  scale <- params[2]
+  ##
+  n <- length(data)   # sample size
+  
+  # Log-likelihood for Weibull distribution
+  loglik <- n * log(shape) - n * shape * log(scale) + 
+            (shape - 1) * sum(log(data)) - 
+            sum((data / scale)^shape)
+  
+  return(loglik)    # Return negative for minimization
+}
+
+
+## Score (gradient) equation
+
+weibull.score <- function(params, data) {
+  shape <- params[1]
+  scale <- params[2]
+  n <- length(data)
+  
+  # Gradient for shape parameter
+  grad_shape <- n/shape - n * log(scale) + 
+                sum(log(data)) - 
+                sum((data/scale)^shape * log(data/scale))
+  
+  # Gradient for scale parameter
+  grad_scale <- -(n * shape)/scale + 
+                (shape/scale) * sum((data/scale)^shape)
+  
+  return(c(grad_shape, grad_scale))
+}
+
+
+##
+# Need to provide initial values for parameters
+initial.params <- c(shape = 2.2, scale = 1.5)  # Reasonable starting values
+
+
+# Using optim with Nelder-Mead method
+mle.result <- optim(
+  par = initial.params,
+  fn = weibull.loglik,
+  gr = weibull.score,
+  data = sample.data,
+  method = "L-BFGS-B",
+  hessian = TRUE,
+  control = list(trace = FALSE,
+                 fnscale = -1,
+                 maxit = 500,
+                 abstol = 1e-8)
+)
+##
+mle.result
+```
 **Remarks**: `optim()` is a powerful optimization function. While the previous implementation relies solely on the log-likelihood function, real-world scenarios often involve likelihood functions with numerous parameters and complex expressions. In such cases, gradient-based methods become advantageous. Fortunately, `optim()` offers several gradient-based optimization algorithms to choose from.
 
 ```{}

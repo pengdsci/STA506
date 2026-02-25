@@ -213,13 +213,13 @@ $$
 f(x \mid \alpha, \beta) = \frac{1}{\Gamma(\alpha)\beta^\alpha} x^{\alpha-1} e^{-x/\beta}  \ \ \text{for} \ \  x > 0,
 $$
 
-Derive the gradient of the likelihood function with respect to the gamma distribution parameters $\alpha$ and $\beta$. To this end,
+Derive the gradient of the **log-likelihood function** with respect to the gamma distribution parameters $\alpha$ and $\beta$. To this end,
 
 
-a). Write out the full likelihood function based on the given data and the density function provided above.
+a). Write out the full **log-likelihood function** based on the given data and the density function provided above.
 
 
-b). Derive the score functions (the gradient of the log-likelihood) from the full likelihood function in part (a).
+b). Derive the score functions (the gradient of the log-likelihood) from the full **log-likelihood function** in part (a).
 
 \
 
