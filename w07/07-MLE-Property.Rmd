@@ -656,11 +656,14 @@ To conclude this module, we present a numerical example following the same metho
 
 **Data Set**:  Let's use wind speed data (in m/s) from a wind energy application. The Weibull distribution is commonly used to model wind speeds for wind power generation analysis.
 
-12.4  2.7  4.3  4.3 11.1  2.5  5.3  8.7 11.4  4.2  7.5  6.5 12.1  3.2  2.5  8.5  
-4.2  7.2 16.0  7.0  9.5  6.3  7.9  2.7 10.9  1.1 4.6 10.4  4.2  0.6  4.8  4.8  3.7 
-15.6 13.3  0.4 12.1  3.2 15.2  1.5  2.5  6.2  5.4  3.4  2.8  0.8  4.0  0.5  5.4  6.5
+12.4  2.7  4.3  4.3 11.1  2.5  5.3  8.7 11.4  4.2  7.5  6.5 12.1  3.2  2.5  8.5 
+
+4.2  7.2 16.0  7.0  9.5  6.3  7.9  2.7 10.9 1.1 4.6 10.4  4.2 0.6  4.8  4.8 3.7 
+
+15.6 13.3  0.4 12.1  3.2 15.2  1.5 2.5  6.2 5.4  3.4 2.8  0.8 4.0 0.5  5.4  6.5
 
 \
+
 
 ## Implementation of `optim()` 
 
@@ -732,10 +735,10 @@ log_likelihood_gradient <- function(params, data) {
   n <- length(data)
   
   # Partial derivatives
-  dk <- -n/k + n * log(lambda) - sum(log(data)) + 
+  dk <- n/k - n * log(lambda) + sum(log(data)) - 
         sum(log(data/lambda) * (data/lambda)^k)
   
-  dlambda <- n * k/lambda - k/lambda * sum((data/lambda)^k)
+  dlambda <-  (k/lambda)*(sum((data/lambda)^k) -n)
   
   return(c(dk, dlambda))  # Gradient of log-likelihood, NOT the negative scores
 }
@@ -766,7 +769,7 @@ mle_result <- optim(
   fn = log_likelihood,
   gr = log_likelihood_gradient,
   data = wspeed,
-  #method = "BFGS",         # BFGS can use gradient information L-BFGS-B
+  method = "L-BFGS-B",         # BFGS can use gradient information L-BFGS-B
   hessian = TRUE,          # this is the observed Hessian matrix 
   control = list(maxit = 1000, 
                  fnscale  = -1,
