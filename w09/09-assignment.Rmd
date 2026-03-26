@@ -3,6 +3,18 @@ title: "Assignment 8: Bootstrap Methods and Applications"
 author: "Your Name "
 date: " Due: "
 output:
+  pdf_document: 
+    toc: yes
+    toc_depth: 4
+    fig_caption: yes
+    number_sections: yes
+    fig_width: 3
+    fig_height: 3
+  word_document: 
+    toc: yes
+    toc_depth: 4
+    fig_caption: yes
+    keep_md: yes
   html_document: 
     toc: yes
     toc_depth: 4
@@ -14,18 +26,6 @@ output:
     smooth_scroll: yes
     highlight: monochrome
     theme: spacelab
-  word_document: 
-    toc: yes
-    toc_depth: 4
-    fig_caption: yes
-    keep_md: yes
-  pdf_document: 
-    toc: yes
-    toc_depth: 4
-    fig_caption: yes
-    number_sections: yes
-    fig_width: 3
-    fig_height: 3
 editor_options: 
   chunk_output_type: inline
 ---
@@ -196,21 +196,21 @@ $$
 
 After some algebra, we can express the mean and variance of the above lognormal distribution in the following
 
-$$
+
 \begin{align}
 \mathbb{E}[X] &= \exp\left(\mu + \frac{\sigma^2}{2}\right) \\
 \text{Var}(X) &= [\exp(\sigma^2) - 1] \exp(2\mu + \sigma^2)
 \end{align}
-$$
+
 
 Using the relationship between normal and log-normal distribution and a sample $\{x_1, x_2, \dots, x_n\}$, the MLE estimators of $\mu$ and $\sigma^2$ are given by
 
-$$
+
 \begin{align}
 \hat{\mu} &= \frac{1}{n}\sum_{i=1}^n \ln(x_i) \\
 \hat{\sigma}^2 &= \frac{1}{n}\sum_{i=1}^n (\ln(x_i) - \hat{\mu})^2
 \end{align}
-$$
+
 
 Using the plug-in principle of MLE, we have the MLE of $\mathbb{E}[X]$ and $\text{Var}(X)$ in the following
 
@@ -252,19 +252,31 @@ Soil lead (Pb) concentrations (mg/kg) from 55 urban garden sites. Trace metals i
 </p>
 
 <p>
-Assume the data follow a log‑normal distribution. For each question, first describe your reasoning for the analysis, then write code to carry out the analysis. Finally, summarize the results to draw a conclusion.
+
+$$\boxed{\text{Instructions:}}$$
+
+Assume the data follow a log-normal distribution. For each question in parts (b)–(d), begin by clearly explaining the reasoning behind your analytical approach. Then, develop your own R functions to implement three types of confidence intervals: the asymptotic interval, the percentile bootstrap interval, and the bias-corrected and accelerated (BCa) bootstrap interval. Use these functions to construct the required confidence intervals, and verify your results using the appropriate functions from the `boot` package.
+
+You are encouraged to design a wrapper function that integrates all confidence interval methods, allowing users to select the desired method through an input argument.
 </P>
 
 <p>
-a). Perform 5000 bootstrap samples to estimate the **bootstrap sampling distribution** of $\boxed{\widehat{\mathbb{E}[X]}$ and plot it as either a histogram or a kernel density curve. Comment on the shape and patterns observed in the bootstrap sampling distribution.
 
-b). Construct a **95% bootstrap percentile confidence interval** for $\mu_{LN} = \mathbb{E}[X]$.
+$$\boxed{\text{Individual Questions:}}$$
 
-c). Construct a **95% bootstrap BCa confidence interval** for $mu_{LN} = \mathbb{E}[X]$.
+a). Perform 5000 bootstrap samples to estimate the bootstrap sampling distribution of $\boxed{\widehat{\mathbb{E}[X]}}$. Display the distribution using either a histogram or a kernel density plot. Comment on the shape, variability, and any notable patterns observed in the bootstrap sampling distribution.
 
-d). Using the Central Limit Theorem to construct a **95% asymptotic confidence interval** for $mu_{LN} = \mathbb{E}[X]$.
 
-f). Assuming both confidence intervals above are valid, compare them in terms of performance and recommend which method should be used in this analysis. Justify your recommendation.
+b). Construct a 95% bootstrap percentile confidence interval for $\mu_{LN} = \mathbb{E}[X]$.
+
+
+c). Construct a 95% bootstrap BCa confidence interval for $\mu_{LN} = \mathbb{E}[X]$.
+
+
+d). Use the Central Limit Theorem to construct a 95% asymptotic confidence interval for $\mu_{LN} = \mathbb{E}[X]$.
+
+
+f). Assuming the confidence intervals constructed in the previous parts are valid, evaluate their performance by comparing their widths, symmetry, stability, and sensitivity to distributional skewness. Then, provide a well‑reasoned recommendation regarding which method is most suitable for this analysis.
 </p>
 
 
