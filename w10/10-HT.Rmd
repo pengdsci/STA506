@@ -183,13 +183,17 @@ To provide an objective, reproducible standard for evaluating whether observed p
 
 **An analogy**: Statistical hypothesis testing vs medical diagnostics
 
-| Steps|        **Statistical Hypothesis Testing**      |      **Medical Diagnostics**        |
-|:------------------------- |:------------------------|:------------------------|
-| **Formulate Hypotheses** | Ho: No effect vs Ha: Effect exists |  Ho: Healthy vs Ha: Has disease    |
-| **Choose Test & Threshold** |  Select a test with $\alpha$=0.05     | Choose related clinical tests |
-| **Collect Evidence and Aggregation** |  Gather sample data and Compute test statistic from data | Perform diagnostic test and aggregate lab result value |
-| **Make Decision** | Reject Ho if evidence strong enough (check if $p \le 0.05$) | Diagnose disease if test positive (check if result exceeds diagnostic cutoff) |
+|Steps	|**Statistical Hypothesis Testing**	| **Medical Diagnostics**	| **Court Trial Case**|
+|:------------------|:-------------------------------|:-----------------------------|:-----------------------------------|
+| **Formulate Hypotheses**	| Ho: No effect vs Ha: Effect exists	| Ho: Healthy vs Ha: Has disease | 	Ho: Innocent vs Ha: Guilty| 
+| **Choose Test & Threshold**	| Select a test with $\alpha = 0.05$	| Choose related clinical tests	| Set standard of proof (e.g., beyond a reasonable doubt)| 
+| **Collect Evidence and Aggregation**	| Gather sample data and compute test statistic from data	| Perform diagnostic test and aggregate lab result value	| Collect evidence and present case (testimony, exhibits, etc.)| 
+| **Make Decision**	| Reject Ho if evidence strong enough (check if $p \le 0.05$)	| Diagnose disease if test positive (check if result exceeds diagnostic cutoff)	| Convict if evidence meets the burden of proof (e.g., unanimous jury verdict)| 
+| **Type I Error (False Positive)**	| Reject Ho when Ho is true (false discovery)	| Diagnose disease when actually healthy (false alarm)	| Convict an innocent person (wrongful conviction)| 
+| **Type II Error (False Negative)**	| Fail to reject Ho when Ha is true (missed effect)	| Declare healthy when actually have disease (missed diagnosis)	| Acquit a guilty person (false acquittal)| 
+| **Which is More Serious?**	| Depends on context; often Type I is controlled ($\alpha$ fixed), but Type II can be critical in applied settings	| Type II (missing a disease) is often considered more serious in screening; Type I (false alarm) may cause unnecessary anxiety/treatment	| Type I (wrongful conviction) is generally considered more serious in Western legal systems, hence the high burden of proof (“innocent until proven guilty”)| 
 
+\
 
 We can observe that the logical reasoning behind statistical hypothesis testing and medical diagnostics is identical. To better understand the hypothesis testing process, we will examine the following non-numerical examples.
 
