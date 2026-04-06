@@ -1,0 +1,840 @@
+---
+title: "Wald, Score and Likelihood Ratio Tests"
+author: "Cheng Peng"
+date: "West Chester University"
+output:
+  html_document: 
+    toc: yes
+    toc_depth: 4
+    toc_float: yes
+    number_sections: yes
+    toc_collapsed: yes
+    code_folding: hide
+    code_download: yes
+    smooth_scroll: yes
+    theme: lumen
+  pdf_document: 
+    toc: yes
+    toc_depth: 4
+    fig_caption: yes
+    number_sections: yes
+    fig_width: 3
+    fig_height: 3
+  word_document: 
+    toc: yes
+    toc_depth: 4
+    fig_caption: yes
+    keep_md: yes
+editor_options: 
+  chunk_output_type: inline
+---
+
+```{css, echo = FALSE}
+#TOC::before {
+  content: "Table of Contents";
+  font-weight: bold;
+  font-size: 1.2em;
+  display: block;
+  color: navy;
+  margin-bottom: 10px;
+}
+
+
+div#TOC li {     /* table of content  */
+    list-style:upper-roman;
+    background-image:none;
+    background-repeat:none;
+    background-position:0;
+}
+
+h1.title {    /* level 1 header of title  */
+  font-size: 22px;
+  font-weight: bold;
+  color: DarkRed;
+  text-align: center;
+  font-family: "Gill Sans", sans-serif;
+}
+
+h4.author { /* Header 4 - and the author and data headers use this too  */
+  font-size: 15px;
+  font-weight: bold;
+  font-family: system-ui;
+  color: navy;
+  text-align: center;
+}
+
+h4.date { /* Header 4 - and the author and data headers use this too  */
+  font-size: 18px;
+  font-weight: bold;
+  font-family: "Gill Sans", sans-serif;
+  color: DarkBlue;
+  text-align: center;
+}
+
+h1 { /* Header 1 - and the author and data headers use this too  */
+    font-size: 20px;
+    font-weight: bold;
+    font-family: "Times New Roman", Times, serif;
+    color: darkred;
+    text-align: center;
+}
+
+h2 { /* Header 2 - and the author and data headers use this too  */
+    font-size: 18px;
+    font-weight: bold;
+    font-family: "Times New Roman", Times, serif;
+    color: navy;
+    text-align: left;
+}
+
+h3 { /* Header 3 - and the author and data headers use this too  */
+    font-size: 16px;
+    font-weight: bold;
+    font-family: "Times New Roman", Times, serif;
+    color: navy;
+    text-align: left;
+}
+
+h4 { /* Header 4 - and the author and data headers use this too  */
+    font-size: 14px;
+  font-weight: bold;
+    font-family: "Times New Roman", Times, serif;
+    color: darkred;
+    text-align: left;
+}
+
+/* Add dots after numbered headers */
+.header-section-number::after {
+  content: ".";
+
+body { background-color:white; }
+
+.highlightme { background-color:yellow; }
+
+p { background-color:white; }
+
+}
+```
+
+```{r setup, include=FALSE}
+# code chunk specifies whether the R code, warnings, and output 
+# will be included in the output files.
+if (!require("knitr")) {
+   install.packages("knitr")
+   library(knitr)
+}
+if (!require("pander")) {
+   install.packages("pander")
+   library(pander)
+}
+if (!require("psych")) {
+  install.packages("psych")
+  library(psych)
+}
+if (!require("RColorBrewer")) {
+  install.packages("RColorBrewer")
+  library(RColorBrewer)
+}
+
+if (!require("boot")) {
+  install.packages("boot")
+  library(boot)
+}
+if (!require("effsize")) {
+  install.packages("effsize")
+  library(effsize)
+}
+## library(effsize)
+knitr::opts_chunk$set(echo = TRUE,       # include code chunk in the output file
+                      warning = FALSE,   # sometimes, you code may produce warning messages,
+                                         # you can choose to include the warning messages in
+                                         # the output file. 
+                      results = TRUE,    # you can also decide whether to include the output
+                                         # in the output file.
+                      message = FALSE,
+                      comment = NA
+                      )  
+```
+
+\
+
+# Introduction
+
+
+This module focuses on the three most commonly used statistical tests in subsequent courses: the Wald, Score, and Likelihood Ratio tests. These three methods form the cornerstone of inference in parametric models, providing powerful and versatile approaches for testing hypotheses, constructing confidence intervals, and assessing model fit. 
+
+While rooted in the elegant framework of maximum likelihood estimation, each test offers a distinct geometric or algebraic perspective on the evidence against a null hypothesis. Understanding their theoretical foundations, comparative strengths, and intrinsic relationships is essential for mastering advanced statistical methodology and applying it correctly to complex data.
+
+In this module, we will state formulation, assumptions, steps to perform these tests and explained by numerical examples with manual solution and verification using R.
+
+
+# Review of Likelihood Formulation and Estimation
+
+In maximum likelihood estimation, we fit models by finding parameters that make the observed data most probable. This process naturally leads to three related methods for testing hypotheses such as the likelihood ratio, Wald, and score tests. Each test uses a different feature of the likelihood function, but all are rooted in the same principles of likelihood and asymptotic theory. This section reviews basics of maximum likelihood estimation and their asymptotic normality.
+
+
+**Likelihood Function**
+
+Let $X_1, X_2, \dots, X_n$ be independent and identically distributed (i.i.d) random variables with probability density (or mass) function $f(x_i; \boldsymbol{\theta})$, where $\boldsymbol{\theta} = (\theta_1, \dots, \theta_p)^T$ is a $p$-dimensional parameter vector. The likelihood function is:
+
+$$
+L(\boldsymbol{\theta}) = \prod_{i=1}^n f(x_i; \boldsymbol{\theta})
+$$
+
+The log-likelihood function is:
+
+$$
+\ell(\boldsymbol{\theta}) = \log L(\boldsymbol{\theta}) = \sum_{i=1}^n \log f(x_i; \boldsymbol{\theta})
+$$
+
+**Maximum Likelihood Estimation**
+
+The maximum likelihood estimator (MLE) $\hat{\boldsymbol{\theta}}$ satisfies:
+
+$$
+\hat{\boldsymbol{\theta}} = \arg\max_{\boldsymbol{\theta}} \ell(\boldsymbol{\theta})
+$$
+
+Under regularity conditions, $\hat{\boldsymbol{\theta}}$ is obtained by solving the score equations:
+
+$$
+U(\boldsymbol{\theta}) = \frac{\partial \ell(\boldsymbol{\theta})}{\partial \boldsymbol{\theta}} = \boldsymbol{0}
+$$
+
+
+**Information Matrices**
+
+The Fisher information matrix is:
+
+$$
+I(\boldsymbol{\theta}) = -E\left[\frac{\partial^2 \ell(\boldsymbol{\theta})}{\partial \boldsymbol{\theta} \partial \boldsymbol{\theta}^T}\right]
+$$
+
+The observed information matrix is:
+
+$$
+J(\boldsymbol{\theta}) = -\frac{\partial^2 \ell(\boldsymbol{\theta})}{\partial \boldsymbol{\theta} \partial \boldsymbol{\theta}^T}
+$$
+
+Under regularity conditions: $\sqrt{n}(\hat{\boldsymbol{\theta}} - \boldsymbol{\theta}_0) \xrightarrow{d} N(\boldsymbol{0}, I^{-1}(\boldsymbol{\theta}_0))$.
+
+
+The above asymptotic normality is the foundation of the wald test.
+
+
+\
+
+# The Three Asymptotic $\chi^2$ Tests
+
+At the foundation of parametric hypothesis testing lies a trio of asymptotically equivalent methods: the likelihood ratio, Wald, and score tests. All three derive from maximum likelihood theory and converge to the same chi-squared distribution under the null hypothesis, yet they approach the problem of testing from meaningfully different angles.
+
+The **likelihood ratio test** directly compares the goodness-of-fit between the unrestricted model and the model constrained by the null hypothesis. The **Wald test** evaluates the distance between the estimated parameter vector and its hypothesized value, standardized by the estimated curvature of the likelihood. The **score test**, alternatively, examines whether the slope of the log-likelihood at the null parameter value is sufficiently close to zero—an indication that the null point is a plausible maximum.
+
+Despite their asymptotic equivalence, these tests differ in computation, finite-sample performance, and invariance properties, leading to practical trade-offs in applied work. The following sub-sections develop their formulations, contrasts their theoretical and practical attributes, and provide guidance for choosing among them in statistical modeling.
+
+
+
+## Wald Test
+
+**Formulation** Tests the distance between the unconstrained MLE and the hypothesized value. It measures geometric displacement from $H_0$ in parameter space.
+
+**Test Statistic**
+
+$$
+W = [\boldsymbol{g}(\hat{\boldsymbol{\theta}})]^T \left[ \hat{G} \, \widehat{Var}(\hat{\boldsymbol{\theta}}) \, \hat{G}^T \right]^{-1} \boldsymbol{g}(\hat{\boldsymbol{\theta}})
+$$
+where $\hat{G} = \frac{\partial \boldsymbol{g}(\boldsymbol{\theta})}{\partial \boldsymbol{\theta}^T}\big|_{\boldsymbol{\theta}=\hat{\boldsymbol{\theta}}}$.
+
+For simple case $H_0: \boldsymbol{\theta} = \boldsymbol{\theta}_0$:
+
+$$
+W = (\hat{\boldsymbol{\theta}} - \boldsymbol{\theta}_0)^T \hat{I}(\hat{\boldsymbol{\theta}} - \boldsymbol{\theta}_0)
+$$
+
+**Asymptotic Distribution**: $W \xrightarrow{d} \chi^2_q$ under $H_0$.
+
+**Assumptions**: Requires only the unconstrained MLE. Sensitive to parameterization.
+
+
+## Score Test (Rao's Score Test)
+
+Rao's score is also known as the **Lagrange multiplier test**.
+
+**Formulation**: Tests whether the score at the null hypothesis is significantly different from zero. It measures local gradient at $H_0$ in likelihood space.
+
+**Test Statistic**:
+
+$$
+S = U(\tilde{\boldsymbol{\theta}})^T I^{-1}(\tilde{\boldsymbol{\theta}}) U(\tilde{\boldsymbol{\theta}})
+$$
+where $\tilde{\boldsymbol{\theta}}$ is the MLE under $H_0$ (constrained MLE).
+
+**Asymptotic Distribution**: $S \xrightarrow{d} \chi^2_q$ under $H_0$.
+
+**Assumptions**: Requires only the constrained MLE. Invariant to reparameterization.
+
+
+## Likelihood Ratio Test
+
+**Formulation**: Compares the maximized log-likelihood under $H_0$ and $H_1$. It measures information loss when imposing $H_0$.
+
+**Test Statistic**:
+
+$$
+\Lambda = -2[\ell(\tilde{\boldsymbol{\theta}}) - \ell(\hat{\boldsymbol{\theta}})] = 2[\ell(\hat{\boldsymbol{\theta}}) - \ell(\tilde{\boldsymbol{\theta}})]
+$$
+
+**Asymptotic Distribution**: $\Lambda \xrightarrow{d} \chi^2_q$ under $H_0$.
+
+**Assumptions**: Requires both constrained and unconstrained MLEs. Invariant to reparameterization.
+
+\
+
+
+
+# Practical Examples: Single Parameter
+
+To concretely demonstrate the similarities and differences among the three likelihood-based tests, we now turn to practical implementation in R. While these tests often yield similar conclusions with large samples, their distinctions become particularly instructive when examining simple yet fundamental distributions. 
+
+Through hands-on examples using Poisson and normal distributions, we will systematically apply the Likelihood Ratio, Wald, and Score tests to identical hypotheses. This comparative approach will illuminate how each test statistic is calculated, showcase scenarios where their results diverge meaningfully, and provide reusable code templates that reveal the computational machinery underlying common statistical procedures. 
+
+<font color = "blue">**Unlike t-tests and z-tests which have closed-form formulas, likelihood-based chi-squared tests require explicit derivation of the likelihood function, parameter estimation under null/alternative, and careful construction of the test statistics. This is why they're more flexible but require more preparation.**</font> The key preparation steps required
+
+* Derive log-likelihood function $\ell(\theta; x)$
+* Derive score function $U(\theta) = \partial \ell/\partial \theta$
+* Derive Fisher Information $I(\theta) = -E[\partial^2 \ell/\partial \theta^2]$
+* Find MLEs under both $H_0$ and $H_1$
+* Compute standard errors from inverse Fisher Information
+* Construct test statistics using appropriate formulas
+
+<font color = "red">**Note that likelihood-based inferences rely on large-sample asymptotic theory. For the purpose of clearly illustrating the procedure, the examples in the following subsections will use small toy datasets.**</font>
+
+
+## Example 1: Poisson Distribution
+
+**Problem**: Test $H_0: \lambda = 2$ vs $H_1: \lambda \neq 2$ for $X_1, \dots, X_n \sim \text{Poisson}(\lambda)$. 
+
+**Observed data**: 3, 1, 4, 2, 3.
+
+**Manual Solution**:
+
+* **Likelihood**: $L(\lambda) = \prod_{i=1}^n \frac{e^{-\lambda} \lambda^{x_i}}{x_i!}$
+    
+* **Log-likelihood**: $\ell(\lambda) = -n\lambda + (\sum x_i)\log\lambda - \sum \log(x_i!)$
+    
+* **MLE**: $\hat{\lambda} = \bar{x} = \frac{3+1+4+2+3}{5} = 2.6$
+    
+* **Score function**: $U(\lambda) = \frac{d\ell}{d\lambda} = -n + \frac{\sum x_i}{\lambda}$
+    
+* **Information**: $I(\lambda) = \frac{n}{\lambda}$ (expected), $J(\lambda) = \frac{\sum x_i}{\lambda^2}$ (observed)
+
+
+**Wald Test**
+
+$$
+W = (\hat{\lambda} - \lambda_0)^2 \hat{I}(\hat{\lambda}) = (2.6 - 2)^2 \times \frac{5}{2.6} = 0.36 \times 1.923 = 0.692
+$$
+Using observed information: $W = (0.6)^2 \times \frac{13}{2.6^2} = 0.36 \times 1.923 = 0.692$
+
+**Score Test**
+
+Score at $\lambda_0=2$: $U(2) = -5 + \frac{13}{2} = 1.5$
+
+$$
+I(2) = \frac{5}{2} = 2.5
+$$
+
+$$
+S = U(2)^2 I^{-1}(2) = (1.5)^2 \times \frac{1}{2.5} = 2.25 \times 0.4 = 0.9
+$$
+
+**Likelihood Ratio Test**
+
+$$
+\ell(\hat{\lambda}) = -5(2.6) + 13\log(2.6) - \sum \log(x_i!) = -13 + 13(0.9555) - \log(1728) \approx -8.0335
+$$
+
+$$
+\ell(\lambda_0) = -5(2) + 13\log(2) - \sum \log(x_i!) = -10 + 13(0.6931) - 7.455 \approx -8.4447
+$$
+
+$$
+\Lambda = 2[-8.0335 - (-8.4447)] = 2(0.4112) = 0.8224
+$$
+
+**Conclusion** All test statistics are approximately between 0.7 and 0.9.  Since all three test statistics are less than the critical value $\chi^2_{1,0.05} = 3.841$, we fail to reject $H_0$.
+
+
+**R Verification**
+
+```{r}
+# Poisson example
+x <- c(3, 1, 4, 2, 3)
+n <- length(x)
+
+# MLE
+lambda_mle <- mean(x)
+
+# Wald test
+se_wald <- sqrt(lambda_mle/n)
+W <- ((lambda_mle - 2)/se_wald)^2
+
+# Score test
+U <- -n + sum(x)/2
+I <- n/2
+S <- U^2/I
+
+# Likelihood ratio test
+ll_mle <- sum(dpois(x, lambda_mle, log = TRUE))
+ll_null <- sum(dpois(x, 2, log = TRUE))
+LR <- 2*(ll_mle - ll_null)
+
+cat("  Wald:", W, "p-value:", 1-pchisq(W, 1), "\n",
+    "Score:", S, "p-value:", 1-pchisq(S, 1), "\n",
+    "   LR:", LR, "p-value:", 1-pchisq(LR, 1), "\n")
+```
+
+
+## Example 2: Normal Distribution Mean Test
+
+**Problem** Test $H_0: \mu = 10$ vs $H_1: \mu \neq 10$ for $X_i \sim N(\mu, \sigma^2)$, where $\sigma^2 = 0.1$. 
+
+**Data**: 10.2, 9.8, 10.0, 10.2, 9.9.
+
+**Manual Solution**
+
+* **Likelihood**: $L(\mu) = (2\pi\sigma^2)^{-n/2} \exp\left\{-\frac{1}{2\sigma^2} \sum_{i=1}^n (x_i - \mu)^2\right\}$.
+
+* **Log-likelihood**: $\ell(\mu) = \log L(\mu) = -\frac{n}{2}\log(2\pi\sigma^2) - \frac{1}{2\sigma^2} \sum_{i=1}^n (x_i - \mu)^2$
+
+* **Score Equation**: $S(\mu) = \frac{\partial \ell(\mu)}{\partial \mu} = \frac{1}{\sigma^2} \sum_{i=1}^n (x_i - \mu)$
+
+* **MLE** $\hat{\mu} = \bar{x} = \frac{1}{n} \sum_{i=1}^n x_i = \frac{10.2+9.8+10.0+10.2+9.9}{5} = 10.02$
+    
+* **Information** $I(\mu) = -\frac{\partial^2 \ell(\mu)}{\partial \mu^2}  = \frac{n}{\sigma^2} = \frac{5}{0.1} = 50$
+
+
+With the above manual work, we next define the three test statistic:
+
+
+**Wald Test**
+
+$$
+W = (\hat{\mu} - \mu_0)^2 I(\hat{\mu}) = (0.02)^2 \times 50 = 0.0004 \times 50 = 0.02
+$$
+
+**Score Test**
+
+$$
+U(\mu) = \frac{n}{\sigma^2}(\bar{x} - \mu)
+$$
+
+At $\mu_0=10$: $U(10) = 50 \times (10.02 - 10) = 1$
+
+$$
+S = U(10)^2 I^{-1}(10) = 1^2 \times \frac{1}{50} = 0.02
+$$
+
+**Likelihood Ratio Test**
+
+$$
+\ell(\mu) = -\frac{n}{2}\log(2\pi\sigma^2) - \frac{1}{2\sigma^2}\sum(x_i - \mu)^2
+$$
+
+$$
+\ell(\mu_0) = -\frac{n}{2}\log(2\pi\sigma^2) - \frac{1}{2\sigma^2}\sum(x_i - \mu_0)^2
+$$
+
+
+$$
+\ell(\hat{\mu}) - \ell(\mu_0) = -\frac{1}{2\sigma^2}[\sum(x_i - \hat{\mu})^2 - \sum(x_i - \mu_0)^2]
+$$
+
+$$
+= -\frac{1}{0.2}[0.13 - 0.128] = -5 \times 0.002 = -0.01
+$$
+
+$$
+\Lambda = 2 \times 0.01 = 0.02.
+$$
+
+\
+
+**R Verification**
+
+```{r}
+# Normal example
+x <- c(10.2, 9.8, 10.0, 10.2, 9.9)
+n <- length(x)
+sigma2 <- 0.1
+mu0 <- 10
+
+mu_mle <- mean(x)
+
+# Wald test
+W <- (mu_mle - mu0)^2 * (n/sigma2)   # Wald test statistic
+
+# Score test
+U <- (n/sigma2) * (mu_mle - mu0)
+I <- n/sigma2
+S <- U^2/I    # Rao test statistic
+
+# Likelihood ratio test
+ll_mle <- sum(dnorm(x, mu_mle, sqrt(sigma2), log = TRUE))  # log = TRUE yields log-likelihood
+ll_null <- sum(dnorm(x, mu0, sqrt(sigma2), log = TRUE))
+LR <- 2*(ll_mle - ll_null)    # log-likelihood ratio test statistic
+
+cat("  Wald:", W, "p-value:", 1-pchisq(W, 1), "\n",
+    "Score:", S, "p-value:", 1-pchisq(S, 1), "\n",
+    "   LR:", LR, "p-value:", 1-pchisq(LR, 1), "\n")
+```
+
+\
+
+# Practical Example: Multiple Parameters
+
+In the single-parameter case, the Fisher information number is relatively straightforward to derive. For multi-parameter cases, however, we need to obtain the Fisher information matrix in order to conduct both the Wald and score tests. This section uses the Weibull distribution as an example to illustrate the procedure for the three chi-square tests.
+
+## Components for the Three $\chi^2$ Tests
+
+In this subsection, we use the gamma distribution as an example to illustrate how to test the significance of parameters. Since the gamma distribution is commonly expressed in two distinct formulations, we adopt the following parameterization.
+
+The gamma distribution with shape parameter $\alpha > 0$ and rate parameter $\beta > 0$ has probability density function:
+
+$$
+f(x; \alpha, \beta) = \frac{\beta^{\alpha}}{\Gamma(\alpha)} x^{\alpha-1} e^{-\beta x}, \quad x > 0
+$$
+
+The case where the shape parameter $\alpha = 1$ reduces the gamma to an exponential distribution. Thus, testing this null hypothesis indicates whether the gamma distribution provides a significantly better fit or leads to overfitting for the given data.
+
+Assume $\{x_1, x_2, \cdots, x_n\} \xrightarrow{i.i.d} \text{gamma}(\alpha, \beta)$. $\psi(\alpha)$ denotes the **digamma function**
+
+$$
+\psi(z) = \frac{d}{dz} \ln \Gamma(z) = \frac{\Gamma'(z)}{\Gamma(z)}.
+$$
+
+**R functions** `digamma(z)`, `trigamma(z)`, `tetragamma(z)` evaluate $\psi(x), \psi^\prime (z)$ and $\psi^{\prime\prime}(z)$, respectively.
+
+
+The objective is to test $H_0: \alpha = 1$. The major components required for testing the hypothesis are given below.  
+
+**Log-likelihood**
+
+$$
+\ell(\alpha, \beta) = n\alpha\log\beta - n\log\Gamma(\alpha) + (\alpha-1)\sum_{i=1}^n \log x_i - \beta\sum_{i=1}^n x_i
+$$
+
+**Score Equations**
+
+$$
+\frac{\partial\ell}{\partial\alpha} = n\log\beta - n\psi(\alpha) + \sum_{i=1}^n \log x_i = 0
+$$
+
+$$
+\frac{\partial\ell}{\partial\beta} = \frac{n\alpha}{\beta} - \sum_{i=1}^n x_i = 0
+$$
+
+**Maximum Likelihood Estimation**
+
+The maximum likelihood estimates of $\alpha$ and $\beta$, denoted by $\hat{\alpha}$ and $\hat{\beta}$, are the solutions to the above **system** of score equations.
+
+\
+
+**Information Matrix**
+
+$\mathcal{I}_{22}$ is the (2,2) element of the **Fisher information matrix** of $\alpha$ and $\beta$:
+
+$$
+\mathcal{I}(\alpha, \beta) = \begin{pmatrix} \frac{\partial^2\ell}{\partial \alpha^2} & \frac{\partial^2\ell}{\partial\alpha\partial\beta} \\ \frac{\partial^2\ell}{\partial\beta\partial\alpha}& \frac{\partial^2\ell}{\partial\beta^2} \end{pmatrix} = \begin{pmatrix} n\psi'(\alpha) & \frac{n}{\beta} \\ \frac{n}{\beta} & \frac{n\alpha}{\beta^2} \end{pmatrix}
+$$
+
+
+**Remark**: For the likelihood ratio test, we must obtain both the restricted and unrestricted maximum likelihood estimates (MLEs). The restricted MLE is derived under the null hypothesis $H_0: \alpha = 1$ (i.e., $\alpha$ fixed to a constant), while the unrestricted MLE treats both $\alpha$ and $\beta$ as unknown parameters. In general, these MLEs must be obtained using numerical approximation methods.
+
+
+
+## Numerical Implementation
+
+The dataset used in this example contains measurements of microtubule catastrophe times (the time until a microtubule stops growing). In their Cell paper (2011), Gardner, Zanic, and colleagues (Gardner, Zanic, et al. (2011). Cell, 147(5), 1092-1103.) explicitly modeled these catastrophe times using a **gamma distribution**. For illustrative purpose, we only use complete times in this example.
+
+We first load the data into R and then follow the steps above to perform the three likelihood-based $\chi^2$ tests.
+
+```{r}
+time2event <- read.table("https://pengdsci.github.io/STA506/w11/Time2Catastrophe.txt")
+colnames(time2event) <- "time"
+x <- time2event
+```
+
+**Loglikelihood function** 
+
+The following R function evaluate the loglikelihood function and will be used to find the unrestricted MLE of $\alpha$ and $\beta$. 
+
+```{r}
+# loglikelihood function
+log_likelihood <- function(param) {
+  alpha <- param[1] 
+  beta <- param[2]
+  n <- length(x)
+  return(n * alpha * log(beta) - n * log(gamma(alpha)) + 
+         (alpha - 1) * sum(log(x)) - beta * sum(x))
+}
+```
+
+**Score Equations**: The following R function returns a vector score functions, computed from the data values and parameter estimates.
+
+```{r}
+# Score equations (should be zero at solution)
+score_equ <-function(par){
+    alpha <- par[1]
+    beta <- par[2]
+    score_alpha <- n * log(beta) - n * digamma(alpha) + sum(log(x))
+    score_beta <- n * alpha / beta - sum(x)
+    c(score_alpha, score_beta)
+  }
+```
+
+**Fisher Information Matrix** is coded in the following
+
+```{r}
+FisherInfo <- function(par){
+    # Fisher information matrix (negative expected Hessian)
+    # Used for Newton-Raphson update
+    # It contains only parameters
+    alpha <- par[1]
+    beta <- par[2]
+    
+    # Fisher Info cell
+    I_11 <- n * trigamma(alpha)
+    I_12 <- -n / beta
+    I_22 <- n * alpha / beta^2
+    
+    # Information matrix
+    Fisher <- matrix(c(I_11, I_12, I_12, I_22), nrow = 2, byrow = TRUE)
+    Fisher   
+}
+```
+
+
+## Maximum Likelihood Estimation
+
+Instead of relying on special built-in R functions that compute maximum likelihood estimates (MLEs) for specific distribution families, we introduce a general purpose optimization function `optim()` for obtaining MLEs for arbitrary distributions. Specifically, we will derive the MLEs of the parameters $\alpha$
+ and $\beta$, along with the corresponding Fisher information matrix, which will be used in the Score and Wald tests.
+
+`optim()` is a wrapper function that provides access to several optimization algorithms. The specific numerical method invoked internally depends on the information supplied to the function. In practice, a popular variant of the Newton–Raphson algorithm known as the Broyden–Fletcher–Goldfarb–Shanno (BFGS) algorithm is frequently employed. BFGS requires the gradient (score vector) to efficiently guide the search toward the optimal solution. The following R code illustrates how to use the BFGS method via `optim()`.
+
+
+```{r}
+ x <- time2event
+ n = length(x)
+ result <- optim(
+          par = c(1,1),             # need to provide initial values to start the iteration.
+                                    # Choosing appropriate initial values is critical.
+          fn = log_likelihood,      # Caution: need negative log-likelihood
+          gr = score_equ,           # also nee negative score
+          method = "BFGS",          # calling BFGS algorithm
+          hessian = TRUE,           # return Hessian matrix
+          control = list(           # some controls in numerical iteration
+                fnscale = -1,       # turn the minimization to maximization problem
+                maxit = 1000,       # stopping rule 1: cap number of iterations
+                reltol = 1e-8,      # stopping rule: precision control
+                REPORT = 10         # The algorithm will print progress updates 
+                                    # every 10 iterations
+          )
+  )
+ result
+```
+
+Double check with the hessian matrix using the derived formula
+
+```{r}
+Fisher <- FisherInfo(result$par)
+Fisher
+```
+
+Which is consistent with the **hessian matrix** in the output of `optim()`.
+
+
+The variance and covariance matrix can be approximated by inverting the **Fisher Information Matrix** or the inverse of the negative Hessian matrix returned from `optim()`.
+
+
+```{r}
+varcov <- solve(-result$hessian)   # solve() is a matrix inversion function
+varcov
+```
+
+That is, $\text{var}(\alpha) = 54223.2410$ and $\text{var}(\beta) = 0.005006445$.
+
+
+## Two $\chi^2$ Tests 
+
+The three $\chi^2$ tests are given respectively in the following.
+
+### Likelihood Ratio Test
+
+We have found the un-restrictive MLEs of $\alpha$ and $\beta$:
+
+```{r}
+MLE <- result$par
+MLE
+```
+
+We now find restrictive MLE of $\beta$  under $H_0: \alpha = 1$. The optimization problems becomes single parameter problem.
+
+
+```{r}
+##
+loglik <- function(beta) n*log(beta)-n -beta*sum(x)
+##
+score <- function(beta) n/beta - sum(x)
+##
+ x <- time2event
+ n = length(x)
+ result0 <- optim(
+          par = 0.05,             # need to provide initial values to start the iteration.
+                                    # Choosing appropriate initial values is critical.
+          fn = loglik,              # Caution: need negative log-likelihood
+          gr = score,               # also nee negative score
+          method = "BFGS",          # calling BFGS algorithm
+          hessian = TRUE,           # return Hessian matrix
+          control = list(           # some controls in numerical iteration
+                fnscale = -1,       # turn the minimization to maximization problem
+                maxit = 1000,       # stopping rule 1: cap number of iterations
+                reltol = 1e-8,      # stopping rule: precision control
+                REPORT = 10         # The algorithm will print progress updates 
+                                    # every 10 iterations
+          )
+  )
+ result0
+```
+
+
+That is the restrictive MLE of $\beta$, denoted by $\hat{\beta}=0.00001075$.
+
+The likelihood ratio test statistic is
+
+$$
+LR = −2[\ell(\hat{\alpha}, \hat{\beta})−\ell(1,\hat{\beta})] \to \chi^2_1.
+$$
+
+The R code that evaluates the above test statistic is given by
+
+```{r}
+ x <- time2event
+ n = length(x)
+ ##
+ LR = -2*(loglik(result0$par) - log_likelihood(result$par))
+ LR
+```
+
+
+Since the chi-square test is always right-tailed, the p-value based on the test statistic above is given by $p = P(\chi^2_1 > LR)$. The p-value can be obtained using the following R code.
+
+```{r}
+pval <- 1 - pchisq(LR, df = 1)
+pval
+```
+
+The p-value is nearly zero, leading to the rejection of the null hypothesis $H_0: \alpha = 1$.
+
+
+### Wald  $\chi^2$  Test
+
+The Wald $\chi^2$ test statistics for the null hypothesis $H_0: \alpha = 1$ is given by
+
+$$
+W_{\text{Wald}} = [\frac{\hat{\alpha} - 1}{\text{se}(\hat{\alpha})}]^2 = \frac{(\hat{\alpha}-1)^2}{\text{var}(\hat{\alpha})} \to \chi^2_1
+$$
+
+where $\text{Var}(\hat{\alpha})$ is the diagonal element of the inverse of the observed Fisher information matrix (i.e., the variance–covariance matrix). This means that the Fisher information matrix is required for the Wald test.
+
+
+Next, we define the test statistic and calculate the p-value using the following R code
+
+```{r}
+alpha.hat  <- result$par[1]     # based on the unrestricted likelihood estimation
+se.alpha <- sqrt(varcov[1, 1])  # the square root of the top-left diagonal value
+W <- (alpha.hat - 1)^2/se.alpha^2   # Wald test statistic
+##
+pval.W <- 1 - pchisq(W, df = 1)
+pval.W
+```
+
+The p-value is bigger than 0.05 implying the rejection of the null hypothesis.
+
+
+
+
+
+
+
+
+\
+
+# Performance Comparison
+
+At the heart of modern statistical inference lies a powerful trio: the Likelihood Ratio, Wald, and Score tests. Each provides a distinct lens for testing hypotheses, transforming the same likelihood function into a chi-squared statistic through different logical and geometrical principles. Their asymptotic equivalence provides a reassuring theoretical foundation, yet their finite-sample divergence reveals a rich landscape of statistical trade-offs, where the choice of test balances considerations of accuracy, convenience, invariance, and computational burden.
+
+
+**Core Performance Characteristics**
+
+* **Likelihood Ratio Test (LRT)** - best overall performance in most situations
+  + **Accuracy**: Most reliable in finite samples, closest to nominal Type I error rates
+  + **Robustness**: Invariant to parameter transformations (unique advantage)
+  + **Conservatism**: Slightly conservative in very small samples
+  + **Computation**: Most intensive (requires fitting both models)
+
+
+* **Wald Test** - fastest but least reliable in non-ideal conditions
+  + **Accuracy**: Can be poor in small samples, especially with:
+    - Skewed likelihoods
+    - Parameters near boundaries (variances, probabilities near 0/1)
+    - Nonlinear parameters
+  + **Bias**: Often anti-conservative (inflates Type I error)
+  + **Computation**: Fastest (only needs full model)
+
+* **Score Test (Rao)**- efficient compromise with specific strengths
+  + **Accuracy**: Good when null hypothesis is true, but can be inconsistent when alternative is true
+  + **Power**: Sometimes less powerful than LRT in small samples
+  + **Computation**: Moderate (only needs null model)
+  + **Special strength**: Best for boundary testing and initial model building
+
+
+**General Recommendations**
+
+* Use the LRT when:
+  + Computational cost is not a concern.
+  + Sample size is small to moderate.
+  + when comparing nested models of general types (GLMs, mixed models, etc.).
+
+* Use the Wald Test when:
+  + only having the unrestricted model output (e.g., from a standard regression summary).
+  + Doing quick approximate inference or constructing confidence intervals.
+  + The sample size is large and the likelihood is well-behaved (≈ quadratic).
+  + **Caution**: Can be misleading for parameters like odds ratios (always exponentiate first, then form Wald CI on log scale).
+
+* Use the Score Test when:
+  + The null model is simpler to fit (e.g., testing for an additional regressor in a large data set; only fit the reduced model).
+  + In model checking and diagnostics (e.g., residuals tests).
+  + When the MLE under the alternative is hard to obtain or at a boundary.
+
+
+**Logical Paradoxes and Resolutions**
+
+* **Paradox 1**: "Wald can reject when LRT doesn't"
+  + **Occurs when**: Likelihood is highly non-quadratic
+  + **Logical explanation**: Wald assumes symmetric CI based on curvature at MLE; LRT uses actual likelihood shape
+  + **Resolution**: Trust LRT—it respects the true likelihood geometry
+
+* **Paradox 2**: "Score test more powerful than LRT"
+  + **Occurs when**: Parameter at boundary, small samples
+  + **Logical explanation**: Score uses exact null distribution; LRT uses asymptotic χ² approximation
+  + **Resolution**: Use exact distributions or corrected LRT (50:50 mixture χ²)
+
+* **Paradox 3**: "Tests disagree asymptotically"
+  + **Logical implication**: Likely model misspecification or computational error
+  + **Resolution**: Check model assumptions and numerical stability
+
+
+
+
+

@@ -1,0 +1,255 @@
+---
+title: "Assignment 11: Detecting Overfitting and Overfitting Issues"
+author: "Your Name "
+date: " Due: "
+output:
+  html_document: 
+    toc: yes
+    toc_depth: 4
+    toc_float: yes
+    number_sections: no
+    toc_collapsed: yes
+    code_folding: hide
+    code_download: yes
+    smooth_scroll: yes
+    highlight: monochrome
+    theme: spacelab
+  word_document: 
+    toc: yes
+    toc_depth: 4
+    fig_caption: yes
+    keep_md: yes
+  pdf_document: 
+    toc: yes
+    toc_depth: 4
+    fig_caption: yes
+    number_sections: yes
+    fig_width: 3
+    fig_height: 3
+editor_options: 
+  chunk_output_type: inline
+---
+
+```{css, echo = FALSE}
+#TOC::before {
+  content: "Table of Contents";
+  font-weight: bold;
+  font-size: 1.2em;
+  display: block;
+  color: navy;
+  margin-bottom: 10px;
+}
+
+
+div#TOC li {     /* table of content  */
+    list-style:upper-roman;
+    background-image:none;
+    background-repeat:none;
+    background-position:0;
+}
+
+h1.title {    /* level 1 header of title  */
+  font-size: 22px;
+  font-weight: bold;
+  color: DarkRed;
+  text-align: center;
+  font-family: "Gill Sans", sans-serif;
+}
+
+h4.author { /* Header 4 - and the author and data headers use this too  */
+  font-size: 15px;
+  font-weight: bold;
+  font-family: system-ui;
+  color: navy;
+  text-align: center;
+}
+
+h4.date { /* Header 4 - and the author and data headers use this too  */
+  font-size: 18px;
+  font-weight: bold;
+  font-family: "Gill Sans", sans-serif;
+  color: DarkBlue;
+  text-align: center;
+}
+
+h1 { /* Header 1 - and the author and data headers use this too  */
+    font-size: 20px;
+    font-weight: bold;
+    font-family: "Times New Roman", Times, serif;
+    color: darkred;
+    text-align: center;
+}
+
+h2 { /* Header 2 - and the author and data headers use this too  */
+    font-size: 18px;
+    font-weight: bold;
+    font-family: "Times New Roman", Times, serif;
+    color: navy;
+    text-align: left;
+}
+
+h3 { /* Header 3 - and the author and data headers use this too  */
+    font-size: 16px;
+    font-weight: bold;
+    font-family: "Times New Roman", Times, serif;
+    color: navy;
+    text-align: left;
+}
+
+h4 { /* Header 4 - and the author and data headers use this too  */
+    font-size: 14px;
+  font-weight: bold;
+    font-family: "Times New Roman", Times, serif;
+    color: darkred;
+    text-align: left;
+}
+
+/* Add dots after numbered headers */
+.header-section-number::after {
+  content: ".";
+
+body {background-color: #ffffff;
+      color: #000000;
+      font-family: Arial, sans-serif;
+      font-size: 1rem;
+      line-height: 1.6;
+      }
+
+.highlightme { background-color:yellow; }
+
+p { background-color:white; }
+
+}
+```
+
+```{r setup, include=FALSE}
+# code chunk specifies whether the R code, warnings, and output 
+# will be included in the output files.
+if (!require("knitr")) {
+   install.packages("knitr")
+   library(knitr)
+}
+if (!require("pander")) {
+   install.packages("pander")
+   library(pander)
+}
+if (!require("ggplot2")) {
+  install.packages("ggplot2")
+  library(ggplot2)
+}
+if (!require("tidyverse")) {
+  install.packages("tidyverse")
+  library(tidyverse)
+}
+
+if (!require("plotly")) {
+  install.packages("plotly")
+  library(plotly)
+}
+
+if (!require("VGAM")) {
+  install.packages("VGAM")
+  library(VGAM)
+}
+#### VGAM
+knitr::opts_chunk$set(echo = TRUE,       # include code chunk in the output file
+                      warning = FALSE,   # sometimes, you code may produce warning messages,
+                                         # you can choose to include the warning messages in
+                                         # the output file. 
+                      results = TRUE,    # you can also decide whether to include the output
+                                         # in the output file.
+                      message = FALSE,
+                      comment = NA
+                      )  
+```
+ 
+ \
+ 
+## **Assignment Objectives** 
+
+<p>
+* Enhance understanding the procedure of likelihood-based chi-square hypothesis testing .
+
+* Implement the procedures for detecting overfitting/underfitting issues in practical applications.
+</p>
+
+
+## **Policies of Using AI Tools**
+
+<p>
+**Policy on AI Tool Use**: Please adhere to the AI tool policy specified in the course syllabus. The direct copying of AI-generated content is strictly prohibited. All submitted work must reflect your own understanding; where external tools are consulted, content must be thoroughly rephrased and synthesized in your own words.
+</p>
+
+<p>
+**Code Inclusion Requirement**: Any code included in your essay must be properly commented to explain the purpose and/or expected output of key code lines. Submitting AI-generated code without meaningful, student-added comments will not be accepted.
+</p>
+
+
+## Testing Overfitting/Underfitting
+
+In Machine Learning and Statistics, overfitting occurs when a model is too complex and learns noise, leading to poor performance on new data, while underfitting happens when a model is too simple to capture important patterns, resulting in high errors overall; both issues are explained by the Bias–Variance Tradeoff and can cause unreliable predictions in real-world applications.
+
+
+The probability density function (PDF) of the Weibull distribution is:
+
+$$
+f(t; \lambda, \beta) = \frac{\beta}{\lambda} \left( \frac{t}{\lambda} \right)^{\beta-1} \exp\left[ -\left( \frac{t}{\lambda} \right)^\beta \right], \quad t \ge 0
+$$
+where $\lambda > 0$ is the scale parameter (characteristic life) and $\beta > 0$ is the shape parameter.
+
+When $\beta = 1$, the Weibull PDF simplifies to the exponential PDF:
+
+$$
+f(t; \lambda) = \frac{1}{\lambda} \exp\left( -\frac{t}{\lambda} \right)
+$$
+with constant hazard rate $h(t) = 1/\lambda$.
+
+
+<p><font color = "darkred">**This assignment focuses on performing a hypothesis test for the shape parameter ($\beta$) of the Weibull distribution within a reliability mode**</font></p>
+
+
+\begin{align}
+H_0&: \beta = 1 \quad \text{(Exponential model, simpler)} \\
+H_1&: \beta \neq 1 \quad \text{(Weibull model, more complex)}
+\end{align}
+
+
+\
+
+## **Question: Reliability Application**
+
+<p>
+A mid-sized manufacturing company producing industrial conveyor systems began experiencing unexpected downtime in one of its distribution facilities, prompting concern about the reliability of a newly sourced batch of ball bearings used in the motor assemblies. These bearings, supplied by a vendor adopting cost-saving production methods, were installed across multiple units operating under continuous load conditions. After several months, maintenance logs revealed a pattern of increasing failures, with components lasting anywhere from a few dozen to over 150 hours before breakdown. To investigate, the engineering team collected time-to-failure data from 50 identical bearings and conducted a Weibull analysis within the framework of Reliability Engineering. The 50 time-to-failure (survival time) are:
+
+```
+12.4, 18.7, 25.3, 30.1, 33.5, 35.2, 38.9, 40.3, 42.7, 45.1, 47.6, 49.8, 52.4, 55.0, 
+57.3, 60.2, 62.8, 65.1, 67.9, 70.5, 72.3, 75.6, 78.2, 80.9, 83.4, 85.7, 88.1, 90.6, 
+93.2, 95.8, 98.4, 101.0, 104.5, 107.3, 110.6, 113.2, 116.8, 120.1, 123.7, 127.4,
+130.9, 134.5, 138.2, 142.0, 146.3, 150.7, 155.2, 160.8, 168.4, 175.9
+```
+</p>
+
+This assignment focuses on hypothesis $H_0: \beta = 1$ (exponential) against $H_1: \beta \neq 1$ (Weibull). This framework detects overfitting (fitting a Weibull when exponential is true) and underfitting (fitting exponential when Weibull with $\beta \neq 1$ is true). 
+
+
+<p>
+a). Find the MLE of the Weibull parameters $\lambda$ (scale) and $\beta$ (shape), denoted by $\hat{\lambda}$ and $\hat{\beta}$, respectively, using the `optim()` procedure. [*Hint: You should provide explicit expressions for the log-likelihood and gradient functions of the Weibull distribution parameters.*]
+
+b). Find the MLE of the exponential parameter $\lambda$ (scale), denoted by $\hat{\lambda}$, using any procedure. [*Hint: You should provide explicit expressions for the log-likelihood and gradient functions of the exponential distribution parameters.*]
+
+c). Perform the likelihood ratio $\chi^2$ test on $\beta = 1$. What is the p-value? [*Hint: Use the results in a) and b)*.] 
+
+
+d). Perform the Wald $\chi^2$ on the same hypothesis $\beta = 1$. What is the p-value? [*Hint: You need to find the observed Fisher information matrix (i.e., the negative Hessian matrix from `optim()`) based on the Weibull distribution. The inverse of the observed Hessian matrix is the covariance matrix*.] 
+
+e). Write a summary of the above analyses to address the following:
+
+* Whether the two tests generated the same results.
+
+* Which model is recommended for the data.
+
+* Draw the density curve based on the MLE(s) of the parameter(s) and describe the distribution of the time-to-failure.
+</p>
+
+
+
