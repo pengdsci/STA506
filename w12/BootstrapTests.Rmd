@@ -1,0 +1,586 @@
+---
+title: "Bootstrap Testing Hypothesis"
+author: "Cheng Peng"
+date: "West Chester University"
+output:
+  html_document: 
+    toc: yes
+    toc_depth: 4
+    toc_float: yes
+    number_sections: yes
+    toc_collapsed: yes
+    code_folding: show
+    code_download: yes
+    smooth_scroll: yes
+    theme: lumen
+  pdf_document: 
+    toc: yes
+    toc_depth: 4
+    fig_caption: yes
+    number_sections: yes
+    fig_width: 3
+    fig_height: 3
+  word_document: 
+    toc: yes
+    toc_depth: 4
+    fig_caption: yes
+    keep_md: yes
+editor_options: 
+  chunk_output_type: inline
+---
+
+```{css, echo = FALSE}
+#TOC::before {
+  content: "Table of Contents";
+  font-weight: bold;
+  font-size: 1.2em;
+  display: block;
+  color: navy;
+  margin-bottom: 10px;
+}
+
+
+div#TOC li {     /* table of content  */
+    list-style:upper-roman;
+    background-image:none;
+    background-repeat:none;
+    background-position:0;
+}
+
+h1.title {    /* level 1 header of title  */
+  font-size: 22px;
+  font-weight: bold;
+  color: DarkRed;
+  text-align: center;
+  font-family: "Gill Sans", sans-serif;
+}
+
+h4.author { /* Header 4 - and the author and data headers use this too  */
+  font-size: 15px;
+  font-weight: bold;
+  font-family: system-ui;
+  color: navy;
+  text-align: center;
+}
+
+h4.date { /* Header 4 - and the author and data headers use this too  */
+  font-size: 18px;
+  font-weight: bold;
+  font-family: "Gill Sans", sans-serif;
+  color: DarkBlue;
+  text-align: center;
+}
+
+h1 { /* Header 1 - and the author and data headers use this too  */
+    font-size: 20px;
+    font-weight: bold;
+    font-family: "Times New Roman", Times, serif;
+    color: darkred;
+    text-align: center;
+}
+
+h2 { /* Header 2 - and the author and data headers use this too  */
+    font-size: 18px;
+    font-weight: bold;
+    font-family: "Times New Roman", Times, serif;
+    color: navy;
+    text-align: left;
+}
+
+h3 { /* Header 3 - and the author and data headers use this too  */
+    font-size: 16px;
+    font-weight: bold;
+    font-family: "Times New Roman", Times, serif;
+    color: navy;
+    text-align: left;
+}
+
+h4 { /* Header 4 - and the author and data headers use this too  */
+    font-size: 14px;
+  font-weight: bold;
+    font-family: "Times New Roman", Times, serif;
+    color: darkred;
+    text-align: left;
+}
+
+/* Add dots after numbered headers */
+.header-section-number::after {
+  content: ".";
+
+body { background-color:white; }
+
+.highlightme { background-color:yellow; }
+
+p { background-color:white; }
+
+}
+```
+
+```{html, echo=FALSE}
+<button id="toggleTOCBtn" class="btn btn-default" style="position: fixed; bottom: 20px; right: 20px; z-index: 1000;">
+  Toggle TOC
+</button>
+
+<script>
+document.getElementById("toggleTOCBtn").onclick = function() {
+  var toc = document.querySelector(".list-group, #TOC, .tocify");
+  if (toc) {
+    if (toc.style.display === "none") {
+      toc.style.display = "";
+    } else {
+      toc.style.display = "none";
+    }
+  }
+};
+</script>
+
+```{r setup, include=FALSE}
+# code chunk specifies whether the R code, warnings, and output 
+# will be included in the output files.
+if (!require("knitr")) {
+   install.packages("knitr")
+   library(knitr)
+}
+if (!require("pander")) {
+   install.packages("pander")
+   library(pander)
+}
+if (!require("ggplot2")) {
+  install.packages("ggplot2")
+  library(ggplot2)
+}
+if (!require("tidyverse")) {
+  install.packages("tidyverse")
+  library(tidyverse)
+}
+
+if (!require("plotly")) {
+  install.packages("plotly")
+  library(plotly)
+}
+if (!require("fitdistrplus")) {
+  install.packages("fitdistrplus")
+  library(fitdistrplus)
+}
+## library(fitdistrplus)
+knitr::opts_chunk$set(echo = TRUE,       # include code chunk in the output file
+                      warning = FALSE,   # sometimes, you code may produce warning messages,
+                                         # you can choose to include the warning messages in
+                                         # the output file. 
+                      results = TRUE,    # you can also decide whether to include the output
+                                         # in the output file.
+                      message = FALSE,
+                      comment = NA
+                      )  
+```
+
+\
+
+# Introduction
+
+
+This module presents comprehensive methods for bootstrap hypothesis testing. For each test (one-sample, two-sample, and alternative Wald, Score, and likelihood ratio tests), we state the mathematical algorithm/steps and provide pseudo-code before presenting numerical examples. All implementations are provided in R with complete code examples.
+
+Bootstrap hypothesis testing involves resampling data to **approximate the sampling distribution** of a test statistic under **the null hypothesis**. The general procedure consists of:
+
+* Compute the test statistic from the original data: $T_{obs}$
+* Transform/resample data to satisfy the <font color = "red">**null hypothesis $H_0$**</font>
+* Generate $B$ bootstrap samples and compute test statistics $T_b^*$
+* Calculate p-value (for a two-tailed test) as: 
+
+$$
+p = \frac{\#\{|T_b^*| \geq |T_{obs}|\} + 1}{B + 1}
+$$
+
+The bootstrap provides a nonparametric approach to inference that doesn't rely heavily on distributional assumptions (i.e., the sampling distribution of the test statistic).
+
+# One-Sample Bootstrap Tests
+
+## One-Sample Mean Test (Parametric Bootstrap)
+
+**Mathematical Algorithm**
+
+Let $X = \{x_1, x_2, ..., x_n\}$ be the observed data.
+
+
+* **Null hypothesis**: $H_0: \mu = \mu_0$
+
+* **Test statistic**:  for $\bar{x} = \frac{1}{n}\sum_{i=1}^n x_i$ and $s = \sqrt{\frac{1}{n-1}\sum_{i=1}^n (x_i - \bar{x})^2}$, the test statistic is defined to be
+$$
+t_{obs} = \frac{\bar{x} - \mu_0}{s/\sqrt{n}}
+$$
+
+* **Center data under $H_0$**: $x_i^\prime = x_i - \bar{x} + \mu_0$.  For $b = 1$ to $B$}:
+  + Sample $X_b^* = \{x_1^*, ..., x_n^*\}$ from $X'$ with replacement
+  
+$$\bar{x}_b^* = \frac{1}{n}\sum_{i=1}^n x_i^*$$
+$$s_b^* = \sqrt{\frac{1}{n-1}\sum_{i=1}^n (x_i^* - \bar{x}_b^*)^2}$$
+$$t_b^* = \frac{\bar{x}_b^* - \mu_0}{s_b^*/\sqrt{n}}$$
+
+
+* **Calculate p-value(for two-sided test):
+$$
+p = \frac{\#\{|t_b^*| \geq |t_{obs}|\} + 1}{B + 1}
+$$
+
+
+**Pseudo-code**
+
+\begin{algorithm}
+\caption{One-Sample Mean Bootstrap Test}
+\begin{algorithmic}[1]
+\Function{one\_sample\_mean\_test}{data, $\mu_0$, $B=9999$}
+    \State $n \gets \text{length}(data)$
+    \State $t_{obs} \gets (\text{mean}(data) - \mu_0) / (\text{sd}(data)/\sqrt{n})$
+    
+    \Comment{Center data under $H_0$}
+    \State $centered\_data \gets data - \text{mean}(data) + \mu_0$
+    
+    \State $t^* \gets \text{numeric}(B)$
+    \For{$b = 1$ to $B$}
+        \State $bootstrap\_sample \gets \text{sample}(centered\_data, n, \text{replace}=TRUE)$
+        \State $t^*[b] \gets (\text{mean}(bootstrap\_sample) - \mu_0) / (\text{sd}(bootstrap\_sample)/\sqrt{n})$
+    \EndFor
+    
+    \State $p\_value \gets (\text{sum}(|t^*| \geq |t_{obs}|) + 1) / (B + 1)$
+    \State \Return $p\_value, t_{obs}, t^*$
+\EndFunction
+\end{algorithmic}
+\end{algorithm}
+
+
+**R Implementation**
+
+```{r}
+# One-sample mean test using parametric bootstrap
+one_sample_bootstrap_test <- function(data, mu0, B = 9999) {
+    n <- length(data)
+    t_obs <- (mean(data) - mu0) / (sd(data) / sqrt(n))
+    
+    # Center data under H0: μ = μ0
+    centered_data <- data - mean(data) + mu0
+    
+    t_star <- numeric(B)
+    for (b in 1:B) {
+        bs_sample <- sample(centered_data, n, replace = TRUE)
+        t_star[b] <- (mean(bs_sample) - mu0) / (sd(bs_sample) / sqrt(n))
+    }
+    
+    p_value <- (sum(abs(t_star) >= abs(t_obs)) + 1) / (B + 1)
+    
+    return(list(
+        p_value = p_value,
+        t_obs = t_obs,
+        bootstrap_stats = t_star,
+        mean_obs = mean(data),
+        mu0 = mu0
+    ))
+}
+
+# Example
+set.seed(123)
+data <- rnorm(30, mean = 105, sd = 15)
+mu0 <- 100
+
+result <- one_sample_bootstrap_test(data, mu0, B = 1999)
+```
+
+
+## One-Sample Mean Test (Percentile Method)
+
+**Mathematical Algorithm**
+
+* Compute sample mean: $\bar{x} = \frac{1}{n}\sum_{i=1}^n x_i$, For $b = 1$ to $B$:
+  + Sample $X_b^*$ from $X$ with replacement
+  + $\bar{x}_b^* = \frac{1}{n}\sum_{i=1}^n x_i^*$
+
+* Construct $(1-\alpha)\%$ confidence interval from percentiles. For $\bar{x}_{(q)}$ is the $q$-th quantile of $\{\bar{x}_b^*\}$
+$$
+CI = [\bar{x}_{(\alpha/2)}, \bar{x}_{(1-\alpha/2)}]
+$$
+
+* Decision rule: Reject $H_0: \mu = \mu_0$ if $\mu_0 \notin CI$
+* P-value approximation:
+$$
+p \approx 2 \times \min\left[P(\bar{x}^* \leq \mu_0), P(\bar{x}^* \geq \mu_0)\right]
+$$
+
+
+
+# Two-Sample Bootstrap Tests
+
+**Mathematical Algorithm**
+
+Let $X = \{x_1, ..., x_m\}$ and $Y = \{y_1, ..., y_n\}$ be two independent samples.
+
+* **Null hypothesis**: $H_0: \mu_x = \mu_y$
+* **Pooled standard deviation** (under $H_0$):
+$$
+s_p = \sqrt{\frac{(m-1)s_x^2 + (n-1)s_y^2}{m+n-2}}
+$$
+
+* Test statistic}:
+$$
+t_{obs} = \frac{\bar{x} - \bar{y}}{s_p\sqrt{\frac{1}{m} + \frac{1}{n}}}
+$$
+
+* **Center and pool data under $H_0$}**:
+$$z_i = \begin{cases}
+x_i - \bar{x} & \text{for } i = 1,...,m \\
+y_i - \bar{y} & \text{for } i = 1,...,n
+\end{cases}$$
+
+* For $b = 1$ to $B$:
+  +  $X_b^* = \{z_1^*, ..., z_m^*\}$ from pooled data with replacement
+  +  Sample $Y_b^* = \{z_{m+1}^*, ..., z_{m+n}^*\}$ from pooled data with replacement
+  +  Compute: for  $s_{p,b}^*$ is the pooled SD of $X_b^*$ and $Y_b^*$
+$$
+t_b^* = \frac{\bar{x}_b^* - \bar{y}_b^*}{s_{p,b}^*\sqrt{\frac{1}{m} + \frac{1}{n}}}
+$$
+
+* **Calculate p-value**:
+$$
+p = \frac{\#\{|t_b^*| \geq |t_{obs}|\} + 1}{B + 1}
+$$
+
+
+
+# Likelihood-based Bootstrap Tests
+
+This section presents Bootstrap version of the three likelihood-based $\chi^2$ tests.
+
+## Bootstrap Wald Test
+
+**Mathematical Formulation**
+
+For a parameter $\theta$ with null hypothesis $H_0: \theta = \theta_0$:
+
+* **Maximum likelihood estimator**: $\hat{\theta}$
+* **Estimated variance** $\widehat{Var}(\hat{\theta})$
+* **Wald statistic**
+$$
+W = \frac{(\hat{\theta} - \theta_0)^2}{\widehat{Var}(\hat{\theta})}
+$$
+Under $H_0$, $W \sim \chi^2_1$ asymptotically
+
+
+
+**Bootstrap Algorithm**
+
+*  Compute $\hat{\theta}$ and $W_{obs}$ from original data
+*  For $b = 1$ to $B$:
+  +  Generate bootstrap sample $X_b^*$
+  +  Compute $\hat{\theta}_b^*$ from $X_b^*$
+  +  Estimate $\widehat{Var}_b^*(\hat{\theta}_b^*)$ using nested bootstrap
+  +  Compute:
+$$
+W_b^* = \frac{(\hat{\theta}_b^* - \hat{\theta})^2}{\widehat{Var}_b^*(\hat{\theta}_b^*)}
+$$
+
+* Calculate p-value:
+$$
+p = \frac{\#\{W_b^* \geq W_{obs}\} + 1}{B + 1}
+$$
+
+
+**R Implementation**
+
+```{r}
+# Bootstrap Wald test for mean
+bootstrap_wald_test <- function(data, theta0, B = 999, inner_B = 100) {
+    n <- length(data)
+    theta_hat <- mean(data)
+    
+    # Bootstrap for variance estimation
+    boot_theta <- numeric(B)
+    for (b in 1:B) {
+        bs_sample <- sample(data, n, replace = TRUE)
+        boot_theta[b] <- mean(bs_sample)
+    }
+    
+    # Wald statistic
+    var_theta <- var(boot_theta)
+    W_obs <- (theta_hat - theta0)^2 / var_theta
+    
+    # Bootstrap distribution of Wald statistic
+    W_star <- numeric(B)
+    for (b in 1:B) {
+        bs_sample <- sample(data, n, replace = TRUE)
+        theta_star <- mean(bs_sample)
+        
+        # Inner bootstrap for variance estimation
+        inner_boot <- numeric(inner_B)
+        for (j in 1:inner_B) {
+            inner_sample <- sample(bs_sample, n, replace = TRUE)
+            inner_boot[j] <- mean(inner_sample)
+        }
+        var_star <- var(inner_boot)
+        
+        W_star[b] <- (theta_star - theta_hat)^2 / var_star
+    }
+    
+    p_value <- (sum(W_star >= W_obs) + 1) / (B + 1)
+    
+    return(list(
+        W_obs = W_obs,
+        p_value = p_value,
+        theta_hat = theta_hat,
+        theta0 = theta0
+    ))
+}
+```
+
+
+## Bootstrap Score Test 
+
+**Mathematical Formulation**
+
+For a parameter $\theta$:
+
+* **Score function**: $U(\theta) = \frac{\partial \ell(\theta)}{\partial \theta}$
+where $\ell(\theta)$ is the log-likelihood
+* **Fisher information**: $I(\theta) = -E\left[\frac{\partial^2 \ell(\theta)}{\partial \theta^2}\right]$
+* **Score statistic}**: Under $H_0: \theta = \theta_0$, the following score test statistic $S \sim \chi^2_1$ asymptotically
+$$
+S = \frac{U(\theta_0)^2}{I(\theta_0)}
+$$
+
+
+**Bootstrap Algorithm**
+
+* Compute $U(\theta_0)$ and $I(\theta_0)$ under $H_0$
+* Compute $S_{obs}$
+* For $b = 1$ to $B$:
+  + Generate data under $H_0$: $X_b^* \sim f(x|\theta_0)$
+  + Compute $U_b(\theta_0)$ from $X_b^*$
+  + Compute:
+$$
+S_b^* = \frac{U_b(\theta_0)^2}{I(\theta_0)}
+$$
+
+* Calculate p-value:
+$$
+p = \frac{\#\{S_b^* \geq S_{obs}\} + 1}{B + 1}
+$$
+ 
+
+## Bootstrap Likelihood Ratio Test 
+
+**Mathematical Formulation**
+
+* **Likelihood function**: $L(\theta) = \prod_{i=1}^n f(x_i|\theta)$
+* **Maximum likelihood estimator**: $\hat{\theta} = \arg\max_\theta L(\theta)$
+* **Likelihood ratio**:
+$$
+\Lambda = \frac{L(\theta_0)}{L(\hat{\theta})}
+$$
+* **Likelihood ratio statistic**: Under $H_0: \theta = \theta_0$, $LR = -2\log\Lambda \sim \chi^2_1$ asymptotically distributed as $\chi^2_{d.f}$
+$$
+-2\log\Lambda = -2[\log L(\theta_0) - \log L(\hat{\theta})]
+$$
+
+
+
+**Bootstrap Algorithm**
+
+* Compute $-2\log\Lambda_{obs}$ from original data
+* For $b = 1$ to $B$:
+  +  Generate data under $H_0$: $X_b^* \sim f(x|\theta_0)$
+  + Compute MLE $\hat{\theta}_b^*$ from $X_b^*$
+  + Compute $-2\log\Lambda_b^*$
+
+*  Calculate p-value:
+$$
+p = \frac{\#\{-2\log\Lambda_b^* \geq -2\log\Lambda_{obs}\} + 1}{B + 1}
+$$
+
+
+**R Implementation**
+
+```{r}
+# Bootstrap Likelihood Ratio test for normal mean
+bootstrap_lrt_test <- function(data, mu0, B = 9999) {
+    n <- length(data)
+    
+    # MLEs (assuming unknown variance)
+    mu_hat <- mean(data)
+    sigma_hat <- sd(data) * sqrt((n - 1) / n)  # MLE of σ
+    
+    # Using same sigma estimate for both for fair comparison
+    sigma0 <- sd(data) * sqrt((n - 1) / n)
+    
+    # Log-likelihoods
+    logL_hat <- sum(dnorm(data, mean = mu_hat, sd = sigma_hat, log = TRUE))
+    logL0 <- sum(dnorm(data, mean = mu0, sd = sigma0, log = TRUE))
+    
+    # LR statistic
+    LR_obs <- -2 * (logL0 - logL_hat)
+    
+    # Bootstrap distribution
+    LR_star <- numeric(B)
+    for (b in 1:B) {
+        # Generate data under H0: N(μ0, σ0)
+        bs_sample <- rnorm(n, mean = mu0, sd = sigma0)
+        
+        # MLE from bootstrap sample
+        mu_star <- mean(bs_sample)
+        sigma_star <- sd(bs_sample) * sqrt((n - 1) / n)
+        
+        # Likelihoods
+        logL_star <- sum(dnorm(bs_sample, mean = mu_star, sd = sigma_star, log = TRUE))
+        logL_star0 <- sum(dnorm(bs_sample, mean = mu0, sd = sigma0, log = TRUE))
+        
+        LR_star[b] <- -2 * (logL_star0 - logL_star)
+    }
+    
+    p_value <- (sum(LR_star >= LR_obs) + 1) / (B + 1)
+    
+    return(list(
+        LR_obs = LR_obs,
+        p_value = p_value,
+        mu_hat = mu_hat,
+        mu0 = mu0
+    ))
+}
+```
+
+
+## Non-Permutation Test with Bootstrap
+
+**Mathematical Algorithm**
+
+* **Combine groups**: $Z = \{x_1, ..., x_m, y_1, ..., y_n\}$
+* **Observed statistic**: $T_{obs} = \bar{x} - \bar{y}$
+* For $b = 1$ to $B$}:
+  + Randomly permute $Z$ to get $Z_b^*$
+  + Assign first $m$ elements to $X_b^*$, remaining $n$ to $Y_b^*$
+  + Compute $T_b^* = \bar{x}_b^* - \bar{y}_b^*$
+
+* **Calculate p-value**:
+$$
+p = \frac{\#\{|T_b^*| \geq |T_{obs}|\} + 1}{B + 1}
+$$
+
+
+
+**Choosing Number of Bootstrap Samples**
+
+The choice of $B$ (number of bootstrap samples) affects the precision of p-value estimation. Recommended values:
+
+* For p-values near 0.05: $B \geq 999$
+* For publication quality: $B \geq 9999$
+* For confidence intervals: $B \geq 1000$ for 95\% CI, more for higher confidence levels
+ 
+
+The standard error of a bootstrap p-value is approximately:
+$$
+\text{SE}(p) = \sqrt{\frac{p(1-p)}{B}}
+$$
+
+For $p = 0.05$ and $B = 1000$, $\text{SE} \approx 0.0069$, giving about 1.4 percentage points of uncertainty.
+
+# Conclusion
+
+This document has presented comprehensive methods for bootstrap hypothesis testing in R, covering one-sample tests, two-sample tests, and alternative test statistics (Wald, Score, and likelihood ratio tests). Each method includes mathematical formulation, algorithmic steps, pseudo-code, and practical R implementations. Bootstrap methods provide robust alternatives to classical tests, especially when distributional assumptions are violated or sample sizes are small.
+
+
