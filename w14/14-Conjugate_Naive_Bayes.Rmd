@@ -1,0 +1,934 @@
+---
+title: "Conjugate Bayes Inference and Naive Bayes Prediction"
+author: "Cheng Peng"
+date: "West Chester University"
+output:
+  html_document: 
+    toc: yes
+    toc_depth: 4
+    toc_float: yes
+    number_sections: yes
+    toc_collapsed: yes
+    code_folding: hide
+    code_download: yes
+    smooth_scroll: yes
+    theme: lumen
+  pdf_document: 
+    toc: yes
+    toc_depth: 4
+    fig_caption: yes
+    number_sections: yes
+    fig_width: 3
+    fig_height: 3
+  word_document: 
+    toc: yes
+    toc_depth: 4
+    fig_caption: yes
+    keep_md: yes
+editor_options: 
+  chunk_output_type: inline
+---
+
+```{css, echo = FALSE}
+#TOC::before {
+  content: "Table of Contents";
+  font-weight: bold;
+  font-size: 1.2em;
+  display: block;
+  color: navy;
+  margin-bottom: 10px;
+}
+
+
+div#TOC li {     /* table of content  */
+    list-style:upper-roman;
+    background-image:none;
+    background-repeat:none;
+    background-position:0;
+}
+
+h1.title {    /* level 1 header of title  */
+  font-size: 22px;
+  font-weight: bold;
+  color: DarkRed;
+  text-align: center;
+  font-family: "Gill Sans", sans-serif;
+}
+
+h4.author { /* Header 4 - and the author and data headers use this too  */
+  font-size: 15px;
+  font-weight: bold;
+  font-family: system-ui;
+  color: navy;
+  text-align: center;
+}
+
+h4.date { /* Header 4 - and the author and data headers use this too  */
+  font-size: 18px;
+  font-weight: bold;
+  font-family: "Gill Sans", sans-serif;
+  color: DarkBlue;
+  text-align: center;
+}
+
+h1 { /* Header 1 - and the author and data headers use this too  */
+    font-size: 20px;
+    font-weight: bold;
+    font-family: "Times New Roman", Times, serif;
+    color: darkred;
+    text-align: center;
+}
+
+h2 { /* Header 2 - and the author and data headers use this too  */
+    font-size: 18px;
+    font-weight: bold;
+    font-family: "Times New Roman", Times, serif;
+    color: navy;
+    text-align: left;
+}
+
+h3 { /* Header 3 - and the author and data headers use this too  */
+    font-size: 16px;
+    font-weight: bold;
+    font-family: "Times New Roman", Times, serif;
+    color: navy;
+    text-align: left;
+}
+
+h4 { /* Header 4 - and the author and data headers use this too  */
+    font-size: 14px;
+  font-weight: bold;
+    font-family: "Times New Roman", Times, serif;
+    color: darkred;
+    text-align: left;
+}
+
+/* Add dots after numbered headers */
+.header-section-number::after {
+  content: ".";
+
+body { background-color:white; }
+
+.highlightme { background-color:yellow; }
+
+p { background-color:white; }
+
+}
+```
+
+```{r setup, include=FALSE}
+# code chunk specifies whether the R code, warnings, and output 
+# will be included in the output files.
+if (!require("knitr")) {
+   install.packages("knitr")
+   library(knitr)
+}
+if (!require("pander")) {
+   install.packages("pander")
+   library(pander)
+}
+if (!require("psych")) {
+  install.packages("psych")
+  library(psych)
+}
+if (!require("RColorBrewer")) {
+  install.packages("RColorBrewer")
+  library(RColorBrewer)
+}
+
+if (!require("boot")) {
+  install.packages("boot")
+  library(boot)
+}
+if (!require("effsize")) {
+  install.packages("effsize")
+  library(effsize)
+}
+## library(effsize)
+knitr::opts_chunk$set(echo = TRUE,       # include code chunk in the output file
+                      warning = FALSE,   # sometimes, you code may produce warning messages,
+                                         # you can choose to include the warning messages in
+                                         # the output file. 
+                      results = TRUE,    # you can also decide whether to include the output
+                                         # in the output file.
+                      message = FALSE,
+                      comment = NA
+                      )  
+```
+
+\
+
+# Review Bayesian Rule
+
+Bayesian inference is a probabilistic framework for updating beliefs (in the form of probability distributions) about unknown parameters $\boldsymbol{\theta}$ after observing data $\mathbf{X} = (X_1, X_2, \cdots, X_n)$. It combines prior knowledge (the *prior*) with observed evidence (the *likelihood*) to form an updated belief (the *posterior*).
+
+The core mechanism is **Bayes' Theorem**:
+
+
+$$
+P(\boldsymbol{\theta} \mid \mathbf{X}) = \frac{P(\mathbf{X} \mid \boldsymbol{\theta}) \, P(\boldsymbol{\theta})}{P(\mathbf{X})} \propto P(\mathbf{X} \mid \boldsymbol{\theta}) \, P(\boldsymbol{\theta}) = P\left[(X_1, X_2, \cdots, X_n) \mid \boldsymbol{\theta}\right] \, P(\boldsymbol{\theta})
+$$
+
+
+Where:
+
+* $P(\boldsymbol{\theta} \mid \mathbf{X})$: **Posterior distribution** -- belief about $\boldsymbol{\theta}$ after seeing data.
+
+* $P(\mathbf{X} \mid \boldsymbol{\theta})$: **Likelihood** -- probability of data given $\boldsymbol{\theta}$. <font color = "red">**This a joint probability distribution of $(X_1, X_2, \cdots, X_n) \mid \theta$.**</font> <font color = "blue">Later, we will make a **naïve** assumption of conditional independence, which leads to a classification model called **naïve Bayes**.</font>
+
+* $P(\boldsymbol{\theta})$: **Prior distribution** -- belief about $\boldsymbol{\theta}$ before seeing data. This implies that we can make use of prior auxiliary information in Bayes inference.
+
+* $P(\mathbf{X})$: **Marginal likelihood / Evidence** -- This is the probability of the data under all possible $\boldsymbol{\theta}$ (i.e., the normalizing constant). Because $P(\mathbf{X})$ is constant with respect to $\boldsymbol{\theta}$, its derivative will be zero in the optimization for parameter estimation. This is also why $P(\boldsymbol{\theta} \mid \mathbf{X}) \propto P(\mathbf{X} \mid \boldsymbol{\theta}) \, P(\boldsymbol{\theta})$.
+
+
+<font color = "red">**$P(\mathbf{X} \mid \boldsymbol{\theta}) \, P(\boldsymbol{\theta})$ is called the kernel of $P(\boldsymbol{\theta} \mid \mathbf{X})$**</font>
+
+
+\
+
+# Conjugate Bayesian Inference
+
+A **conjugate prior** is chosen such that the posterior distribution belongs to the same probability family as the prior. This simplifies computation dramatically because the posterior can be derived analytically. If:
+
+$$
+\text{Prior}:  \theta \sim \text{Dist}_1(\alpha)
+$$
+
+$$
+\text{Likelihood}:  \mathbf{X} \mid \theta \sim \text{Dist}_2(\theta)
+$$
+
+Then for conjugacy:
+
+$$
+\text{Posterior: } \theta \mid \mathbf{X} \sim \text{Dist}_1(\alpha')
+$$
+
+where $\alpha'$ are updated hyperparameters.
+
+
+
+## Bayesian Estimation Binomial Distribution
+
+This section use Bayesian estimation of the success probability of binomial distribution as an example to illustrate the process of conjugate Bayesian inference.
+
+### Beta Distribution: Basics and Properties
+
+The Beta distribution is a continuous probability distribution defined on the interval **{[0, 1]**, making it particularly useful for modeling **probabilities, proportions, or percentages**. It is the **conjugate prior** for the Bernoulli, binomial, and geometric distributions in Bayesian inference.
+
+For parameters $\alpha > 0$ and $\beta > 0$, the PDF is:
+
+$$
+f(x; \alpha, \beta) = \frac{x^{\alpha-1}(1-x)^{\beta-1}}{B(\alpha, \beta)}, \quad x \in [0, 1]
+$$
+where:
+
+* $\alpha, \beta$ are **shape parameters** that control the distribution's form
+* $B(\alpha, \beta)$ is the **Beta function**:
+
+$$
+    B(\alpha, \beta) = \int_0^1 t^{\alpha-1}(1-t)^{\beta-1} dt = \frac{\Gamma(\alpha)\Gamma(\beta)}{\Gamma(\alpha + \beta)}
+$$
+
+* $\Gamma(\cdot)$ is the **Gamma function}: $\Gamma(n) = (n-1)!$ for positive integers
+
+The Beta function ensures the PDF integrates to 1 over $[0, 1]$:
+
+$$
+\int_0^1 f(x; \alpha, \beta) \, dx = 1
+$$
+
+**Mean (Expected Value)**
+
+$$
+\mathbb{E}[X] = \frac{\alpha}{\alpha + \beta}
+$$
+
+**Interpretation**: The mean represents a weighted average where $\alpha$ and $\beta$ act like **pseudo-counts** of successes and failures.
+ 
+**Variance**
+
+$$
+\text{Var}(X) = \frac{\alpha\beta}{(\alpha + \beta)^2(\alpha + \beta + 1)}
+$$
+
+**Interpretation**:
+
+* Variance **decreases** as $\alpha + \beta$ increases (more **pseudo-observations** $\Rightarrow$ more certainty)
+
+* Variance is **maximized** when $\alpha = \beta = 1$ (uniform distribution)
+
+
+
+## Bayesian Estimation of Binomial Success Probability
+
+We conduct $n$ independent Bernoulli trials with success probability $\theta \in [0,1]$. We observe $k$ successes. We want to estimate $\theta$ using Bayesian inference with a conjugate Beta prior. 
+
+### Likelihood Function
+
+The data $X = \{x_1, x_2, \dots, x_n\}$, where $x_i \in \{0,1\}$.
+
+$$
+P(X \mid \theta) = \prod_{i=1}^n \theta^{x_i}(1-\theta)^{1-x_i}
+$$
+
+Let $k = \sum_{i=1}^n x_i$ be the total number of successes.
+
+$$
+P(X \mid \theta) = \theta^k (1-\theta)^{n-k}
+$$
+
+This is the **binomial likelihood** (up to the binomial coefficient $\binom{n}{k}$, which is constant with respect to $\theta$):
+
+$$
+P(k \mid \theta, n) = \binom{n}{k} \theta^k (1-\theta)^{n-k}
+$$
+
+For Bayesian updating, we can use the **proportional form**:
+
+$$
+P(k \mid \theta, n) \propto \theta^k (1-\theta)^{n-k}
+$$
+
+### Prior Distribution
+
+We choose a **Beta distribution** as conjugate prior:
+
+$$
+P(\theta \mid \alpha, \beta) = \frac{\theta^{\alpha-1}(1-\theta)^{\beta-1}}{B(\alpha, \beta)}
+$$
+
+Where:
+
+* $\alpha > 0$, $\beta > 0$ are hyperparameters
+* $B(\alpha, \beta) = \frac{\Gamma(\alpha)\Gamma(\beta)}{\Gamma(\alpha+\beta)}$ is the Beta function
+
+
+The **proportional form** (dropping the normalizing constant):
+
+$$
+P(\theta) \propto \theta^{\alpha-1}(1-\theta)^{\beta-1}
+$$
+
+### Bayes' Theorem Application
+
+$$
+P(\theta \mid k, n) = \frac{P(k \mid \theta, n) P(\theta)}{P(k \mid n)}
+$$
+
+Where $P(k \mid n) = \int_0^1 P(k \mid \theta, n) P(\theta) d\theta$ is the marginal likelihood. <font color = "darkred">**The number of Bernoulli trials $n$ is a predetermined constant. It is not an unknown parameter of the binomial distribution.**</font>
+
+### Posterior Derivation
+
+We ignore all constants and work only with the kernels of related distributions to derive the kernel of posterior distribution and add the normalizing in the end to make the complete the posterior distribution.
+
+**Kernel of Posterior Distribution**
+
+We first find the kernel of the posterior distribution based on the above Bayes rule in the following
+
+$$
+P(\theta \mid k, n) \propto P(k \mid \theta, n) \cdot P(\theta)
+$$
+
+$$
+\propto \left[\theta^k (1-\theta)^{n-k}\right] \cdot \left[\theta^{\alpha-1}(1-\theta)^{\beta-1}\right]
+$$
+
+$$
+= \theta^{k + \alpha - 1} (1-\theta)^{n - k + \beta - 1}
+$$
+
+$$
+= \theta^{\alpha' - 1} (1-\theta)^{\beta' - 1}
+$$
+
+Where:
+
+$$
+\alpha' = \alpha + k, \quad \beta' = \beta + (n - k)
+$$
+
+**Complete Posterior Distribution**
+
+We next find the normalizing coefficient to make the above kernel in a valid distribution.
+
+$$
+P(\theta \mid k, n) = \frac{\theta^{\alpha'-1}(1-\theta)^{\beta'-1}}{B(\alpha', \beta')}
+$$
+
+$$
+\theta \mid k, n \sim \text{Beta}(\alpha', \beta')
+$$
+
+Where:
+
+$$
+\alpha' = \alpha + k, \quad \beta' = \beta + n - k
+$$
+
+
+The hyperparameters $\alpha$ and $\beta$ act as **pseudo-counts**:
+
+* $\alpha-1$ = prior number of successes
+
+* $\beta-1$ = prior number of failures
+
+* $\alpha + \beta - 2$ = total prior observations
+
+The posterior simply adds the **observed counts** to the prior pseudo-counts.
+
+
+### Posterior Statistics
+
+Key statistics used in Bayesian inference
+
+**Mean**:
+
+$$
+\mathbb{E}[\theta \mid k, n] = \frac{\alpha'}{\alpha' + \beta'} = \boxed{\frac{\alpha + k}{\alpha + \beta + n} }
+$$
+
+The above expression in the above box can be re-written in the following to make the connection between the MLE of $\theta$, denoted by $\hat{p}_{MLE}$.
+
+
+$$
+= \frac{\frac{\alpha}{n}+\frac{k}{p}}{\frac{\alpha}{n}+\frac{\beta}{n}+1} = \frac{\frac{\alpha}{n}+\hat{p}_{MLE}}{\frac{\alpha}{n}+\frac{\beta}{n}+1}  \xrightarrow{\text{as n gets bigger}} \hat{p}_{MLE}
+$$
+
+where $\hat{p}_{MLE} = k/n$. As $n \to \infty$, $\alpha/n \to 0$ and $\beta/n \to 0$.
+
+
+**Variance**:
+
+$$
+\text{Var}[\theta \mid k, n] = \frac{\alpha'\beta'}{(\alpha'+\beta')^2(\alpha'+\beta'+1)} = \boxed{\frac{(\alpha+k)(\beta+n-k)}{(\alpha+\beta+n)^2(\alpha+\beta+n+1)}}
+$$
+
+The posterior variance in the above box can also be re-written in the following to make the connection with the MLE of variance. We divide both numerator and denominator by $n^3$
+
+
+$$
+\frac{(\alpha+k)(\beta+n-k)}{(\alpha+\beta+n)^2(\alpha+\beta+n+1)} = \frac{\frac{1}{n}(\frac{\alpha}{n}+\frac{k}{n})(\frac{\beta}{n}+1-\frac{k}{n})}{(\frac{\alpha}{n}+\frac{\beta}{n}+1)^2(\frac{\alpha}{n}+\frac{\beta}{n}+1+\frac{1}{n})} \approx \frac{\hat{p}_{MLE}(1-\hat{p}_{MLE})}{n}, \ \ \text{ as n gets bigger}.
+$$
+
+
+
+## Numerical Example
+
+Consider an experiments of 20 Bernoulli trials ($n = 20$) with 14 successes ($k = 14$). We want to find the Bayes estimate of the success probability $\hat{p}_{\text{Bayes}}$ with the prior distribution of the true success probability $\theta$, i.e., $\theta \sim \text{Beta}(3, 3)$ which is symmetric, centered at 0.5.
+
+
+### Bayesian Estimation
+
+The objective is to construct a 95\% Bayesian credible interval based on the information in the experiment (i.e., sample data).
+
+**Setup**
+
+* **Prior**: $\theta \sim \text{Beta}(3, 3)$ (symmetric, centered at 0.5)
+* **Data**: $n = 20$ trials, $k = 14$ successes
+* **MLE**: $\hat{\theta}_{\text{MLE}} = 14/20 = 0.7$
+
+
+**Posterior Calculation**
+
+Based on the derivation of the above subsection, the **Prior parameters** are given by
+
+* **Prior Parameters**: $\alpha = 3$, $\beta = 3$
+* **Prior mean**: $3/(3+3) = 0.5$
+* **Prior strength**: $\alpha + \beta = 6$ (equivalent to 4 pseudo-observations)
+
+
+**Posterior parameters**:
+
+$$
+\alpha' = 3 + 14 = 17, \quad \beta' = 3 + (20 - 14) = 3 + 6 = 9
+$$
+
+
+**Posterior distribution**:
+
+$$
+\theta \mid k, n \sim \text{Beta}(17, 9)
+$$
+
+**Posterior statistics**:
+
+$$
+\mathbb{E}[\theta \mid k, n] = \frac{17}{17 + 9} = \frac{17}{26} \approx 0.654
+$$
+
+$$
+\text{Var}[\theta \mid k, n] = \frac{17 \times 9}{(26)^2(27)} = \frac{153}{18252} \approx 0.00838
+$$
+
+$$
+\text{SD}[\theta \mid k, n] \approx \sqrt{0.00838} \approx 0.0916
+$$
+
+**95\% Credible Interval**
+
+The $100(1-\alpha)\%$ credible interval $[L, U]$ satisfies:
+
+$$
+P(L \leq \theta \leq U \mid k, n) = 0.95
+$$
+
+For Beta(17,9), we use R to find 2.5th and 97.5th percentiles to the obtain the lower and upper credible limits in the following
+
+* $L = \text{Beta}^{-1}(0.025; 17, 9) \approx 0.478$
+
+* $U = \text{Beta}^{-1}(0.975; 17, 9) \approx 0.813$
+
+Therefore, $\theta \in [0.478, 0.813]$ with 95\% posterior probability.
+
+
+### Bayesian Prediction <font color = "darkred">(Optional)</font>
+
+Based on the Bayesian estimates of the parameter obtained previously, we want to predict the outcome of the next $m$ trials. The general formula for the probability of success in next $m$ trials with $y$ successes:
+
+$$
+P(y \mid k, n, m) = \int_0^1 P(y \mid \theta, m) P(\theta \mid k, n) d\theta
+$$
+
+$$
+= \int_0^1 \binom{m}{y} \theta^y (1-\theta)^{m-y} \cdot \frac{\theta^{\alpha'-1}(1-\theta)^{\beta'-1}}{B(\alpha', \beta')} d\theta
+$$
+
+$$
+= \binom{m}{y} \frac{B(\alpha' + y, \beta' + m - y)}{B(\alpha', \beta')}
+$$
+
+This is again a **Beta-binomial distribution**. Next, we look at prediction with special $m$. In the following special cases, $n = 20$ and $k = 14$:
+
+* For 1 next trial ($m=1$, i.e., Bernoulli trial) with the outcome of a success:
+
+$$
+P(\text{success} \mid k, n) = \mathbb{E}[\theta \mid k, n] = \frac{\alpha'}{\alpha' + \beta'} \approx 0.654
+$$
+
+* For 5 next trials ($m=5$) with $y = 3$ successes:
+
+$$
+P(y=3 \mid k, n, m=5) = \binom{5}{3} \frac{B(17+3, 9+2)}{B(17, 9)} = 10 \cdot \frac{B(20, 11)}{B(17, 9)} \approx 0.344
+$$
+
+
+## Common Conjugate Families
+
+The primary purpose of using a conjugate prior in Bayesian inference is to ensure mathematical tractability by guaranteeing that the posterior distribution belongs to the same probability family as the prior, which allows for closed-form analytical updates rather than computationally intensive numerical approximations. This conjugacy enables straightforward sequential learning, where posterior parameters are simply updated through addition of observed data statistics to prior hyperparameters, making it ideal for real-time or streaming data applications. While modern computational methods have reduced the necessity of strict conjugacy, it remains a powerful tool for pedagogical clarity, rapid prototyping, and applications where computational efficiency and transparency are prioritized over full prior flexibility.
+
+The following is a list of some commonly used conjugate priors associated with a few population distributions.
+
+* Bernoulli/Binomial $\leftrightarrow$ Beta
+
+* Poisson $\leftrightarrow$ Gamma
+
+* Normal (with known variance) $\leftrightarrow$ Normal (for mean)
+
+* Normal (with known mean) $\leftrightarrow$ Inverse-Gamma (for variance)
+
+* Multinomial $\leftrightarrow$ Dirichlet
+
+
+
+##  Practical Applications
+
+* **A/B testing**: Update success rate posteriors for two webpage variants.
+
+* **Quality control**: Estimate defect rates with historical prior.
+
+* **Pharmacokinetics**: Update drug effect size distribution from trials.
+
+
+
+# Naïve Bayes Classifier
+
+
+Recall the **Bayes Rule** with multiple feature variables $\mathbf{X} = (X_1, X_2, \cdots, X_k)$ and a categorical variable $\mathbf{C}=(C_1, C_2. \cdots, C_d)$ with $d$ categories. 
+
+
+The core mechanism is **Bayes' Theorem**:
+
+
+$$
+P(C_j \mid \mathbf{X}) = \frac{P(\mathbf{X} \mid C_j) \, P(C_j)}{P(\mathbf{X})} \propto P(\mathbf{X} \mid C_j) \, P(C_j) = P\left[(X_1, X_2, \cdots, X_k) \mid C_j\right] \, P(C_j)
+$$
+
+A probabilistic classifier based on Bayes theorem with a strong (**naive**) assumption: **features are conditionally independent given the class label**.
+
+$$
+P\left[(X_1, X_2, \cdots, X_d) \mid C_j\right] = \prod_{i=1}^k P(X_i\mid C_j), \ \ \text{ where } \ \ 1 \le j \le d.
+$$
+
+That is, under the framework of **Naive Bayes**, the category probability (or proportional to the probability) is calculated by
+
+
+$$
+P(C_j \mid \mathbf{X}) \propto P(C_j) \prod_{i=1}^{d} P(x_j \mid C_j)
+$$
+
+* **$P(C_k)$**: Prior probability of class $k$.
+
+* **$P(x_j \mid C_k)$**: Likelihood of feature $j$ given class $k$.
+
+* **Decision rule for classification**: Choose class with highest posterior $P(C_k \mid \mathbf{x})$.
+
+
+## Gaussian Naïve Bayes
+
+When features are continuous, assume $P(x_j \mid C_k)$ is Gaussian:
+
+$$
+P(x_j \mid C_k) = \frac{1}{\sqrt{2\pi\sigma_{jk}^2}} \exp\left(-\frac{(x_j - \mu_{jk})^2}{2\sigma_{jk}^2}\right)
+$$
+
+Parameters $\mu_{jk}, \sigma_{jk}^2$ estimated via MLE from training data for each class $k$ and feature $j$.
+
+
+**An Numerical Example - Classify Fruits Based on Weight and Sweetness**: We want to predict whether a fruit is an **Apple** or **Orange** based on:
+
+* **Weight** (in grams)
+* **Sweetness** (scale 1-10, where 10 is very sweet)
+
+The training Data is given by
+
+| Fruit | Weight (g) | Sweetness | Class |
+|:-----|:------|:-----------|:----------|
+|  1 |   150 |   6 |   Apple |  
+|  2 |   130 |   8 |   Orange |  
+|  3 |   160 |   5 |   Apple |  
+|  4 |   140 |   7 |   Orange|  
+|  5 |   170 |   4 |   Apple |  
+
+The following are the steps for making prediction.
+
+**Step 1: Calculate Class Probabilities**
+
+* Total fruits: 5
+* Apples: 3 $\rightarrow P(\text{Apple}) = \frac{3}{5} = 0.6$
+* Oranges: 2 $\rightarrow P(\text{Orange}) = \frac{2}{5} = 0.4$
+
+
+**Step 2: Calculate Gaussian Parameters for Each Feature per Class**
+
+* **For Apples + Weight**
+ 
+
+\begin{align}
+    \mu_{\text{weight,Apple}} &= \frac{150 + 160 + 170}{3} = 160 \\
+    \sigma^2_{\text{weight,Apple}} &= \frac{(150-160)^2 + (160-160)^2 + (170-160)^2}{3} \\
+    &= \frac{100 + 0 + 100}{3} = 66.67 \\
+    \sigma_{\text{weight,Apple}} &= \sqrt{66.67} \approx 8.16
+\end{align}
+
+
+* **For Apples + Sweet** 
+
+
+\begin{align}
+    \mu_{\text{sweet,Apple}} &= \frac{6 + 5 + 4}{3} = 5 \\
+    \sigma^2_{\text{sweet,Apple}} &= \frac{(6-5)^2 + (5-5)^2 + (4-5)^2}{3} \\
+    &= \frac{1 + 0 + 1}{3} = 0.67 \\
+    \sigma_{\text{sweet,Apple}} &= \sqrt{0.67} \approx 0.82
+\end{align}
+
+
+
+* **For Oranges + Weight:**
+
+
+\begin{align}
+    \mu_{\text{weight,Orange}} &= \frac{130 + 140}{2} = 135 \\
+    \sigma^2_{\text{weight,Orange}} &= \frac{(130-135)^2 + (140-135)^2}{2} \\
+    &= \frac{25 + 25}{2} = 25 \\
+    \sigma_{\text{weight,Orange}} &= \sqrt{25} = 5
+    \end{align}
+
+
+* **For Oranges + Sweetness:**
+
+
+\begin{align}
+    \mu_{\text{sweet,Orange}} &= \frac{8 + 7}{2} = 7.5 \\
+    \sigma^2_{\text{sweet,Orange}} &= \frac{(8-7.5)^2 + (7-7.5)^2}{2} \\
+    &= \frac{0.25 + 0.25}{2} = 0.25 \\
+    \sigma_{\text{sweet,Orange}} &= \sqrt{0.25} = 0.5
+\end{align}
+
+
+**Step 3: Make a Prediction for a New Fruit**: Given a **New fruit** with Weight = 145g and Sweetness = 6.5. The objective is to use **Naive Bayes** to predict whether this fruit is **Apple** or **Orange**. To proceed, we calculate category probabilities based on the given information of the new fruit in the following:
+
+* **Calculate Likelihoods using Gaussian PDF**
+
+$$
+P(x \mid \text{class}) = \frac{1}{\sqrt{2\pi\sigma^2}} \exp\left(-\frac{(x - \mu)^2}{2\sigma^2}\right)
+$$
+
+* **For Apple:**
+
+
+\begin{align}
+    P(\text{Weight}=145 \mid \text{Apple}) &= \mathcal{N}(145; \mu=160, \sigma^2=66.67) \approx 0.035 \\
+    P(\text{Sweetness}=6.5 \mid \text{Apple}) &= \mathcal{N}(6.5; \mu=5, \sigma^2=0.67) \approx 0.139 \\
+    \text{Likelihood}(\text{Apple}) &= 0.035 \times 0.139 = 0.004865
+\end{align}
+
+
+* **For Orange:**
+
+
+\begin{align}
+    P(\text{Weight}=145 \mid \text{Orange}) &= \mathcal{N}(145; \mu=135, \sigma^2=25) \approx 0.0108 \\
+    P(\text{Sweetness}=6.5 \mid \text{Orange}) &= \mathcal{N}(6.5; \mu=7.5, \sigma^2=0.25) \approx 0.484 \\
+    \text{Likelihood}(\text{Orange}) &= 0.0108 \times 0.484 = 0.005227
+\end{align}
+
+
+**Step 4: Apply Bayes' Theorem**
+
+* **Posterior Probabilities (Ignoring Denominator):**
+
+
+\begin{align}
+    P(\text{Apple} \mid \text{data}) &\propto P(\text{Apple}) \times \text{Likelihood}(\text{Apple}) \\
+    &= 0.6 \times 0.004865 = \mathbf{0.002919} \\[6pt]
+    P(\text{Orange} \mid \text{data}) &\propto P(\text{Orange}) \times \text{Likelihood}(\text{Orange}) \\
+    &= 0.4 \times 0.005227 = \mathbf{0.002091}
+\end{align}
+
+
+* **Normalize:**
+
+
+\begin{align}
+    \text{Total} &= 0.002919 + 0.002091 = 0.00501 \\[6pt]
+    P(\text{Apple} \mid \text{data}) &= \frac{0.002919}{0.00501} \approx \mathbf{58.3\%} \\[6pt]
+    P(\text{Orange} \mid \text{data}) &= \frac{0.002091}{0.00501} \approx \mathbf{41.7\%}
+\end{align}
+
+
+**Prediction**: <font color = "red">**Apple**</font> (higher probability)
+
+\
+
+## Semiparametric Naive Bayes
+
+When feature variables include both categorical and numerical features,  **naive Bayes** is a natural semiparametric model. The following is a numerical example.
+
+**Example - Email Spam Detection with Naive Bayes**: Classify emails as \textbf{Spam (1)} or \textbf{Not Spam (0)} using:
+
+* **Sender Domain** (categorical): $\{\text{gmail}, \text{work}, \text{unknown}\}$
+
+* **Email Length** (continuous): Number of characters in email body
+
+Next few steps illustrate the process of training the **Naive Bayes** model and use the trained **naive Bayes** to make prediction.
+
+**Step 1. Training Dataset**
+
+
+| Email | Sender Domain ($X_1$) | Email Length ($X_2$) | Class ($Y$) |
+|:------|:----------------------|:---------------------|:------------|
+| 1 |  gmail |  250 |  0 (Not Spam) | 
+| 2 |  work |  120 |  0 | 
+| 3 |  unknown |  500 |  1 (Spam) | 
+| 4 |  gmail |  300 |  0 | 
+| 5 |  unknown |  450 |  1 | 
+| 6 |  work |  180 |  0 | 
+| 7 |  unknown |  400 |  1 | 
+| 8 |  gmail |  280 |  0 | 
+
+
+
+**Step 2. Priors Calculation**
+
+$$
+P(Y=0) = \frac{5}{8} = 0.625
+$$
+
+$$
+P(Y=1) = \frac{3}{8} = 0.375
+$$
+
+**Step 3. Categorical Feature Likelihoods (Sender Domain)**
+
+* **For $Y=0$ (Not Spam):**
+
+\begin{align*}
+P(X_1=\text{gmail} | Y=0) &= 2/5 = 0.4 \\
+P(X_1=\text{work} | Y=0) &= 2/5 = 0.4 \\
+P(X_1=\text{unknown} | Y=0) &= 1/5 = 0.2
+\end{align*}
+
+* **For $Y=1$ (Spam):**
+
+\begin{align*}
+P(X_1=\text{gmail} | Y=1) &= 0/3 = 0 \\
+P(X_1=\text{work} | Y=1) &= 0/3 = 0 \\
+P(X_1=\text{unknown} | Y=1) &= 3/3 = 1
+\end{align*}
+
+* **With Laplace Smoothing ($\alpha=1$):** To avoid zero probability of empty subcategories, we add a small constant.
+
+$$
+P(X_1=k|Y=c) = \frac{\text{count}(k,c) + \alpha}{\text{count}(c) + \alpha \times \text{num\_categories}}
+$$
+
+3 categories: $\{\text{gmail}, \text{work}, \text{unknown}\}$
+
+
+* **For $Y=0$:**
+
+\begin{align*}
+P(X_1=\text{gmail}|Y=0) &= (2+1)/(5+3) = 3/8 = 0.375 \\
+P(X_1=\text{work}|Y=0) &= (2+1)/(5+3) = 3/8 = 0.375 \\
+P(X_1=\text{unknown}|Y=0) &= (1+1)/(5+3) = 2/8 = 0.25
+\end{align*}
+
+* **For $Y=1$:**
+
+\begin{align*}
+P(X_1=\text{gmail}|Y=1) &= (0+1)/(3+3) = 1/6 \approx 0.167 \\
+P(X_1=\text{work}|Y=1) &= (0+1)/(3+3) = 1/6 \approx 0.167 \\
+P(X_1=\text{unknown}|Y=1) &= (3+1)/(3+3) = 4/6 \approx 0.667
+\end{align*}
+
+**Step 4. Continuous Feature (Gaussian) - Email Length**
+
+* **For $Y=0$:**
+
+\begin{align*}
+\mu_0 &= \frac{250+120+300+180+280}{5} = \frac{1130}{5} = 226 \\
+\sigma_0^2 &= \frac{(250-226)^2+(120-226)^2+(300-226)^2+(180-226)^2+(280-226)^2}{4} \\
+&= \frac{24420}{4} = 6105 \\
+\sigma_0 &= \sqrt{6105} \approx 78.13
+\end{align*}
+
+
+* **For $Y=1$:**
+
+\begin{align*}
+\mu_1 &= \frac{500+450+400}{3} = \frac{1350}{3} = 450 \\
+\sigma_1^2 &= \frac{(500-450)^2+(450-450)^2+(400-450)^2}{2} = \frac{5000}{2} = 2500 \\
+\sigma_1 &= \sqrt{2500} = 50
+\end{align*}
+
+**Step 5. Gaussian Probability Density Function**
+
+$$
+P(X_2=x|Y=c) = \frac{1}{\sqrt{2\pi\sigma_c^2}} \exp\left(-\frac{(x-\mu_c)^2}{2\sigma_c^2}\right)
+$$
+
+**Step 6. Classification Example**
+
+Now, we have an incoming **New email** with features: Sender = "unknown", Length = 480 characters. We want to use **naive Bayes** to classify it into either **Spam** or **Not Spam**.
+
+The calculation is divided in the following steps as described earlier:
+
+* **Step 1: Likelihood for categorical feature**
+
+\begin{align*}
+P(X_1=\text{unknown}|Y=0) &= 0.25 \\
+P(X_1=\text{unknown}|Y=1) &= 0.667
+\end{align*}
+
+* **Step 2: Likelihood for continuous feature (using Gaussian PDF)**
+  + **For $Y=0$:**
+
+\begin{align*}
+P(X_2=480|Y=0) &= \frac{1}{\sqrt{2\pi \times 6105}} \exp\left(-\frac{(480-226)^2}{2 \times 6105}\right) \\
+&= \frac{1}{195.77} \exp\left(-\frac{64516}{12210}\right) \\
+&= 0.00511 \times \exp(-5.285) \\
+&= 0.00511 \times 0.00507 \approx 2.59 \times 10^{-5}
+\end{align*}
+
+   + **For $Y=1$:**
+
+\begin{align*}
+P(X_2=480|Y=1) &= \frac{1}{\sqrt{2\pi \times 2500}} \exp\left(-\frac{(480-450)^2}{2 \times 2500}\right) \\
+&= \frac{1}{125.66} \exp\left(-\frac{900}{5000}\right) \\
+&= 0.00796 \times \exp(-0.18) \\
+&= 0.00796 \times 0.835 \approx 0.00665
+\end{align*}
+
+* **Step 3: Posterior probabilities (ignoring denominator)**
+
+\begin{align*}
+P(Y=0|X) &\propto P(Y=0) \times P(X_1|Y=0) \times P(X_2|Y=0) \\
+&= 0.625 \times 0.25 \times 2.59 \times 10^{-5} \approx 4.05 \times 10^{-6} \\[0.5em]
+P(Y=1|X) &\propto P(Y=1) \times P(X_1|Y=1) \times P(X_2|Y=1) \\
+&= 0.375 \times 0.667 \times 0.00665 \approx 0.00166
+\end{align*}
+
+* **Step 4: Normalize**
+
+\begin{align*}
+\text{Sum} &= 4.05 \times 10^{-6} + 0.00166 \approx 0.001664 \\[0.5em]
+P(Y=0|X) &= \frac{4.05 \times 10^{-6}}{0.001664} \approx 0.0024 \\[0.5em]
+P(Y=1|X) &= \frac{0.00166}{0.001664} \approx 0.9976
+\end{align*}
+
+
+<font color = "darkred">**Prediction**:</font> **Spam ($Y=1$)** with 99.76\% confidence
+
+
+
+**Key Naive Bayes Assumptions**
+
+* **Feature Independence**: Assumes sender domain and email length are independent given the class
+* **Gaussian**: Email length follows normal distribution within each class
+* **Categorical**: Sender domain probabilities estimated with smoothing
+* **Naive**: Joint probability = product of individual feature probabilities
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# Non-Conjugate Bayesian Inference
+
+In many real-world models, conjugate priors are not available or appropriate. 
+
+**Examples**:
+
+
+* Logistic regression with Gaussian prior on coefficients.
+
+* Complex hierarchical models.
+
+* Custom likelihood-prior combinations.
+
+
+**Solution approaches**:
+
+
+* **Markov Chain Monte Carlo (MCMC)**: Sample from posterior (e.g., Gibbs sampling, Metropolis-Hastings).
+
+* **Variational Inference**: Approximate posterior with a simpler distribution.
+
+* **Laplace approximation**: Gaussian approximation around posterior mode.
+
+
+Non-conjugate methods are more flexible but computationally intensive, enabled by modern software (Stan, PyMC, JAGS).
+
+
+# Summary
+
+* **Conjugate Bayes**: Enables exact, closed-form posterior updates; ideal for simple models with suitable likelihood-prior pairs.
+
+* **Naïve Bayes**: A fast, scalable classifier leveraging conditional independence; Gaussian Naïve Bayes extends to continuous features.
+
+* **Non-conjugate inference**: Uses numerical methods to approximate posters for complex models, essential for modern Bayesian data analysis.
+
+
+
+
