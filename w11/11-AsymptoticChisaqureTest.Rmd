@@ -334,7 +334,6 @@ D = \hat{\boldsymbol{\theta}} - \boldsymbol{\theta}_0 = \begin{pmatrix}
 \hat{\theta}_1 -\theta_{10}  \\
 \hat{\theta}_2 -\theta_{20}
 \end{pmatrix}
-
 $$
 
 
@@ -365,7 +364,7 @@ $$
 
 
 
-For testing single parameter case $H_0: \boldsymbol{\theta}_1 = \boldsymbol{\theta}_{10}
+For testing single parameter case $H_0: \boldsymbol{\theta}_1 = \boldsymbol{\theta}_{10}$
 
 
 $$
@@ -374,11 +373,13 @@ $$
 
 
 
-**Asymptotic Distribution**: $W \xrightarrow{d} \chi^2_q$ under $H_0$, where $q$ is the numer of parameters in the null hypothesis.
+**Asymptotic Distribution**: $W \xrightarrow{d} \chi^2_q$ under $H_0$,  where $q$ is the number of parameters specified under the null hypothesis.
 
-**Assumptions**: Wald test requires only the unconstrained MLE and is sensitive to parameterization.
+In the two-parameter and one-parameter cases described above, the degrees of freedom of the $\chi^2$ test are $q = 2$ and $q=1$, respectively.
 
 
+
+**Assumptions**: Wald test requires only the unconstrained MLE (as well as Information matrix to derive the covariance matrix of the MLE) and is sensitive to parameterization.
 
 
 
@@ -800,7 +801,7 @@ varcov <- solve(-result$hessian)   # solve() is a matrix inversion function
 varcov
 ```
 
-That is, $\text{var}(\alpha) = 54223.2410$ and $\text{var}(\beta) = 0.005006445$.
+That is, $\text{var}(\alpha) = 4.422498e-02$ and $\text{var}(\beta) = 2.719042e-07$.
 
 
 ## Two $\chi^2$ Tests 
@@ -825,7 +826,7 @@ loglik <- function(beta) n*log(beta)-n -beta*sum(x)
 ##
 score <- function(beta) n/beta - sum(x)
 ##
- x <- time2event
+ x <- time2event$time
  n = length(x)
  result0 <- optim(
           par = 0.05,             # need to provide initial values to start the iteration.
@@ -846,7 +847,7 @@ score <- function(beta) n/beta - sum(x)
 ```
 
 
-That is the restrictive MLE of $\beta$, denoted by $\hat{\beta}=0.00001075$.
+That is the restrictive MLE of $\beta$, denoted by $\hat{\beta}=0.002269067$.
 
 The likelihood ratio test statistic is
 
@@ -894,16 +895,10 @@ se.alpha <- sqrt(varcov[1, 1])  # the square root of the top-left diagonal value
 W <- (alpha.hat - 1)^2/(se.alpha)^2   # Wald test statistic
 ##
 pval.W <- 1 - pchisq(W, df = 1)
-pval.W
+c(W = W, pval.W = pval.W)
 ```
 
-The p-value is bigger than 0.05 implying the rejection of the null hypothesis.
-
-
-
-
-
-
+The p-value is also near 0 implying the rejection of the null hypothesis.
 
 
 \
