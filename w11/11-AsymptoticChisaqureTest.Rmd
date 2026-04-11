@@ -942,7 +942,7 @@ At the heart of modern statistical inference lies a powerful trio: the Likelihoo
 * Use the Wald Test when:
   + only having the unrestricted model output (e.g., from a standard regression summary).
   + Doing quick approximate inference or constructing confidence intervals.
-  + The sample size is large and the likelihood is well-behaved (≈ quadratic).
+  + The sample size is large and the likelihood is well-behaved ($\approx$ quadratic).
   + **Caution**: Can be misleading for parameters like odds ratios (always exponentiate first, then form Wald CI on log scale).
 
 * Use the Score Test when:
@@ -960,8 +960,8 @@ At the heart of modern statistical inference lies a powerful trio: the Likelihoo
 
 * **Paradox 2**: "Score test more powerful than LRT"
   + **Occurs when**: Parameter at boundary, small samples
-  + **Logical explanation**: Score uses exact null distribution; LRT uses asymptotic χ² approximation
-  + **Resolution**: Use exact distributions or corrected LRT (50:50 mixture χ²)
+  + **Logical explanation**: Score uses exact null distribution; LRT uses asymptotic $\chi^2$ approximation
+  + **Resolution**: Use exact distributions or corrected LRT (50:50 mixture $\chi^2$)
 
 * **Paradox 3**: "Tests disagree asymptotically"
   + **Logical implication**: Likely model misspecification or computational error
