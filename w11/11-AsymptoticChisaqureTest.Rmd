@@ -801,7 +801,7 @@ varcov <- solve(-result$hessian)   # solve() is a matrix inversion function
 varcov
 ```
 
-That is, $\text{var}(\alpha) = 4.422498e-02$ and $\text{var}(\beta) = 2.719042e-07$.
+That is, $\text{var}(\alpha) = 4.42\times 10^{-2}$ and $\text{var}(\beta) = 2.72\times 10^{-7}$.
 
 
 ## Two $\chi^2$ Tests 
