@@ -202,24 +202,101 @@ U(\boldsymbol{\theta}) = \frac{\partial \ell(\boldsymbol{\theta})}{\partial \bol
 $$
 
 
-**Information Matrices**
+**Fisher Information Matrix**
 
-The Fisher information matrix is:
-
-$$
-I(\boldsymbol{\theta}) = -E\left[\frac{\partial^2 \ell(\boldsymbol{\theta})}{\partial \boldsymbol{\theta} \partial \boldsymbol{\theta}^T}\right]
-$$
-
-The observed information matrix is:
+The Fisher information matrix of $\theta$ based on an entire sample with size $n$ is given by:
 
 $$
-J(\boldsymbol{\theta}) = -\frac{\partial^2 \ell(\boldsymbol{\theta})}{\partial \boldsymbol{\theta} \partial \boldsymbol{\theta}^T}
+I_n(\boldsymbol{\theta}) = E\left[-\frac{\partial^2 \ell(\boldsymbol{\theta})}{\partial \boldsymbol{\theta} \partial \boldsymbol{\theta}^T}\right]
 $$
 
-Under regularity conditions: $\sqrt{n}(\hat{\boldsymbol{\theta}} - \boldsymbol{\theta}_0) \xrightarrow{d} N(\boldsymbol{0}, I^{-1}(\boldsymbol{\theta}_0))$.
+The above (theoretical) Fisher information matrix requires integral that integrates variables out from the expression. In practice, we use the following observed information matrix:
+
+$$
+J_n(\boldsymbol{\theta}) = -\frac{\partial^2 \ell(\boldsymbol{\theta})}{\partial \boldsymbol{\theta} \partial \boldsymbol{\theta}^T}
+$$
+
+Some software programs return Hessian matrix $H_n( \boldsymbol{\theta}) = -J_n( \boldsymbol{\theta})$, that is
+
+$$
+H_n(\boldsymbol{\theta}) = \frac{\partial^2 \ell(\boldsymbol{\theta})}{\partial \boldsymbol{\theta} \partial \boldsymbol{\theta}^T}
+$$
+
+Note that, in some textbooks, research articles and web postings, the **Fisher Information Matrix** based on single data point is denoted by $I_0(\boldsymbol{\theta})$,
+
+$$
+I_n(\boldsymbol{\theta}) = n\times I_1(\boldsymbol{\theta})
+$$
+
+Under some regularity conditions and the null hypothesis $H_0: \boldsymbol{\theta} = \boldsymbol{\theta}_0$, we have the following 
+
+$$
+\sqrt{n}(\hat{\boldsymbol{\theta}} - \boldsymbol{\theta}_0) \xrightarrow{d} N(\boldsymbol{0}, I_1^{-1}(\boldsymbol{\theta}_0)).
+$$
 
 
-The above asymptotic normality is the foundation of the wald test.
+The relationship between **Fisher Information Matrix** of $\boldsymbol{\theta}$ and the variance of the MLE $\hat{\boldsymbol{\theta}}$ is
+
+$$
+\text{var}(\hat{\boldsymbol{\theta}}) \approx I_n^{-1}(\boldsymbol{\theta}) = [n\times I_1(\boldsymbol{\theta})]^{-1} = \frac{I_1^{-1}(\boldsymbol{\theta})}{n}
+$$
+Therefore, we can rewrite the above asymptotic distribution of $\boldsymbol{\theta}$ as
+
+$$
+\hat{\boldsymbol{\theta}}\to N\left( \boldsymbol{\theta}, \frac{I_1^{-1}(\boldsymbol{\theta})}{n} \right) \quad \text{or equivalently} \quad \hat{\boldsymbol{\theta}}\to N\left( \boldsymbol{\theta}, I_n^{-1}(\boldsymbol{\theta}) \right)
+$$
+
+The diagonal elements in the covariance $I_n^{-1}(\boldsymbol{\theta})$ represent the variance of the corresponding parameters in $\hat{\boldsymbol{\theta}} = (\hat{\theta}_1, \hat{\theta}_2, \cdots, \hat{\theta_k})$. For example. $\text{var}(\hat{\theta}_1) = $ the first element in the main diagonal of the inverse of the fisher information matrix based on the entire sample.  
+
+For example, let $\boldsymbol{\theta} =(\theta_1, \theta_2)$, the corresponding MLE is $\hat{\boldsymbol{\theta}} =(\hat{\theta_1}, \hat{\theta_2)}$. Let the **observed Fisher information matrix** be
+
+$$
+J_n(\boldsymbol{\theta}) = -\frac{\partial^2 \ell(\boldsymbol{\theta})}{\partial \boldsymbol{\theta} \partial \boldsymbol{\theta}^T}=-\begin{pmatrix}
+\frac{\partial^2 \ell(\boldsymbol{\theta})}{\partial^2 \theta_1} & \frac{\partial^2 \ell(\boldsymbol{\theta})}{\partial \theta_1\partial \theta_2} \\
+\frac{\partial^2 \ell(\boldsymbol{\theta})}{\partial \theta_2\partial \theta_1} & \frac{\partial^2 \ell(\boldsymbol{\theta})}{\partial^2 \theta_2}
+\end{pmatrix}
+$$
+
+The estimated Fisher information matrix is given by
+
+$$
+\widehat{J_n(\boldsymbol{\theta})} = -\begin{pmatrix}
+\frac{\partial^2 \ell(\boldsymbol{\theta})}{\partial^2 \theta_1} & \frac{\partial^2 \ell(\boldsymbol{\theta})}{\partial \theta_1\partial \theta_2} \\
+\frac{\partial^2 \ell(\boldsymbol{\theta})}{\partial \theta_2\partial \theta_1} & \frac{\partial^2 \ell(\boldsymbol{\theta})}{\partial^2 \theta_2}
+\end{pmatrix}\Bigg|_{\boldsymbol{\theta} = \hat{\boldsymbol{\theta}}}.
+$$
+
+Note that R function `optim()` returns Hessian matrix $\widehat{H_n(\boldsymbol{\theta})}=- \widehat{J_n(\boldsymbol{\theta})}$.
+
+Let the inverse of $widehat{J_n(\boldsymbol{\theta})}$ be of the following form
+
+$$
+\left[\widehat{J_n(\boldsymbol{\theta})}\right]^{-1} = -\left[\begin{pmatrix}
+\frac{\partial^2 \ell(\boldsymbol{\theta})}{\partial^2 \theta_1} & \frac{\partial^2 \ell(\boldsymbol{\theta})}{\partial \theta_1\partial \theta_2} \\
+\frac{\partial^2 \ell(\boldsymbol{\theta})}{\partial \theta_2\partial \theta_1} & \frac{\partial^2 \ell(\boldsymbol{\theta})}{\partial^2 \theta_2}
+\end{pmatrix}\Bigg|_{\boldsymbol{\theta} = \hat{\boldsymbol{\theta}}}\right]^{-1}
+=\begin{pmatrix}
+a & c \\
+c & d
+\end{pmatrix}.
+$$
+
+Then we have
+
+$$
+\widehat{\text{var}(\hat{\boldsymbol{\theta})}} \approx \begin{pmatrix}
+a & c \\
+c & d
+\end{pmatrix}.
+$$
+
+That is,
+
+$$
+\text{var}(\hat{\theta}_1) \approx a, \quad  \text{var}(\hat{\theta}_2) \approx d, \quad \text{and} \quad  \text{cov}(\hat{\theta}_1, \hat{\theta}_2) \approx c.
+$$
+
+The above asymptotic normality is the foundation of the Wald and Score tests.
 
 
 \
@@ -236,24 +313,73 @@ Despite their asymptotic equivalence, these tests differ in computation, finite-
 
 ## Wald Test
 
-**Formulation** Tests the distance between the unconstrained MLE and the hypothesized value. It measures geometric displacement from $H_0$ in parameter space.
+**Formulation** Tests the distance between the **unconstrained MLE** and the **hypothesized value**. It measures **geometric displacement** from $H_0$ in parameter space. To make it simple, let's $\boldsymbol{\theta} = (\theta_1, \theta_2)$ be the vector of the parameters of a distribution. Consider hypothesis 
+
+$$
+H_0: \boldsymbol{\theta} = \boldsymbol{\theta}_0, \quad \text{i.e.}\quad \begin{pmatrix}
+\theta_1  \\
+\theta_2 
+\end{pmatrix}
+=
+\begin{pmatrix}
+\theta_{10}  \\
+\theta_{20} 
+\end{pmatrix}.
+$$
+
+The difference between the **hypothesized value** and the **unrestricted MLE** is given by
+
+$$
+D = \hat{\boldsymbol{\theta}} - \boldsymbol{\theta}_0 = \begin{pmatrix}
+\hat{\theta}_1 -\theta_{10}  \\
+\hat{\theta}_2 -\theta_{20}
+\end{pmatrix}
+
+$$
+
 
 **Test Statistic**
 
-$$
-W = [\boldsymbol{g}(\hat{\boldsymbol{\theta}})]^T \left[ \hat{G} \, \widehat{Var}(\hat{\boldsymbol{\theta}}) \, \hat{G}^T \right]^{-1} \boldsymbol{g}(\hat{\boldsymbol{\theta}})
-$$
-where $\hat{G} = \frac{\partial \boldsymbol{g}(\boldsymbol{\theta})}{\partial \boldsymbol{\theta}^T}\big|_{\boldsymbol{\theta}=\hat{\boldsymbol{\theta}}}$.
-
-For simple case $H_0: \boldsymbol{\theta} = \boldsymbol{\theta}_0$:
+With the above notations, the Wald test statistic is given by
 
 $$
-W = (\hat{\boldsymbol{\theta}} - \boldsymbol{\theta}_0)^T \hat{I}(\hat{\boldsymbol{\theta}} - \boldsymbol{\theta}_0)
+W = \hat{D}^{T} \, \left[ \widehat{\text{var}(\hat{\boldsymbol{\theta}})}\right]^{-1} \, \hat{D}  = \hat{D}^{T} \,\text{I}_n(\hat{\boldsymbol{\theta}}) \, \hat{D} 
 $$
 
-**Asymptotic Distribution**: $W \xrightarrow{d} \chi^2_q$ under $H_0$.
+More explicitly, we have
 
-**Assumptions**: Requires only the unconstrained MLE. Sensitive to parameterization.
+$$
+W = 
+\begin{pmatrix} 
+\hat{\theta}_1 - \theta_{10} & \hat{\theta}_2 - \theta_{20}
+\end{pmatrix}
+\begin{pmatrix}
+\text{var}(\hat{\theta}_1) & \text{cov}(\hat{\theta}_1, \hat{\theta}_2) \\
+\text{cov}(\hat{\theta}_1, \hat{\theta}_2) & \text{var}(\hat{\theta}_2)
+\end{pmatrix}^{-1}
+\begin{pmatrix}
+\hat{\theta}_1 - \theta_{10} \\
+\hat{\theta}_2 - \theta_{20}
+\end{pmatrix}.
+$$
+
+
+
+For testing single parameter case $H_0: \boldsymbol{\theta}_1 = \boldsymbol{\theta}_{10}
+
+
+$$
+W = (\hat{\theta} - \theta_0)[\text{var}(\hat{\theta}_1)]^{-1}(\hat{\theta} - \theta_0) = \frac{(\hat{\theta} - \theta_0)^2}{\text{var}(\hat{\theta}_1)}
+$$
+
+
+
+**Asymptotic Distribution**: $W \xrightarrow{d} \chi^2_q$ under $H_0$, where $q$ is the numer of parameters in the null hypothesis.
+
+**Assumptions**: Wald test requires only the unconstrained MLE and is sensitive to parameterization.
+
+
+
 
 
 ## Score Test (Rao's Score Test)
@@ -265,7 +391,7 @@ Rao's score is also known as the **Lagrange multiplier test**.
 **Test Statistic**:
 
 $$
-S = U(\tilde{\boldsymbol{\theta}})^T I^{-1}(\tilde{\boldsymbol{\theta}}) U(\tilde{\boldsymbol{\theta}})
+S = U(\tilde{\boldsymbol{\theta}})^T I_n^{-1}(\tilde{\boldsymbol{\theta}}) U(\tilde{\boldsymbol{\theta}})
 $$
 where $\tilde{\boldsymbol{\theta}}$ is the MLE under $H_0$ (constrained MLE).
 
@@ -302,7 +428,7 @@ Through hands-on examples using Poisson and normal distributions, we will system
 
 * Derive log-likelihood function $\ell(\theta; x)$
 * Derive score function $U(\theta) = \partial \ell/\partial \theta$
-* Derive Fisher Information $I(\theta) = -E[\partial^2 \ell/\partial \theta^2]$
+* Derive Fisher Information $I_n(\theta) = -E[\partial^2 \ell/\partial \theta^2]$
 * Find MLEs under both $H_0$ and $H_1$
 * Compute standard errors from inverse Fisher Information
 * Construct test statistics using appropriate formulas
@@ -326,13 +452,13 @@ Through hands-on examples using Poisson and normal distributions, we will system
     
 * **Score function**: $U(\lambda) = \frac{d\ell}{d\lambda} = -n + \frac{\sum x_i}{\lambda}$
     
-* **Information**: $I(\lambda) = \frac{n}{\lambda}$ (expected), $J(\lambda) = \frac{\sum x_i}{\lambda^2}$ (observed)
+* **Information**: $I_n(\lambda) = \frac{n}{\lambda}$ (expected), $J_n(\lambda) = \frac{\sum x_i}{\lambda^2}$ (observed)
 
 
 **Wald Test**
 
 $$
-W = (\hat{\lambda} - \lambda_0)^2 \hat{I}(\hat{\lambda}) = (2.6 - 2)^2 \times \frac{5}{2.6} = 0.36 \times 1.923 = 0.692
+W = (\hat{\lambda} - \lambda_0)^2 \hat{I}_n(\hat{\lambda}) = (2.6 - 2)^2 \times \frac{5}{2.6} = 0.36 \times 1.923 = 0.692
 $$
 Using observed information: $W = (0.6)^2 \times \frac{13}{2.6^2} = 0.36 \times 1.923 = 0.692$
 
@@ -345,7 +471,7 @@ I(2) = \frac{5}{2} = 2.5
 $$
 
 $$
-S = U(2)^2 I^{-1}(2) = (1.5)^2 \times \frac{1}{2.5} = 2.25 \times 0.4 = 0.9
+S = U(2)^2 I_n^{-1}(2) = (1.5)^2 \times \frac{1}{2.5} = 2.25 \times 0.4 = 0.9
 $$
 
 **Likelihood Ratio Test**
@@ -542,10 +668,10 @@ The maximum likelihood estimates of $\alpha$ and $\beta$, denoted by $\hat{\alph
 
 **Information Matrix**
 
-$\mathcal{I}_{22}$ is the (2,2) element of the **Fisher information matrix** of $\alpha$ and $\beta$:
+$\mathcal{I}_n(2,2)$ is the (2,2) element of the **Fisher information matrix** of $\alpha$ and $\beta$ based on entire sample with size $n$:
 
 $$
-\mathcal{I}(\alpha, \beta) = \begin{pmatrix} \frac{\partial^2\ell}{\partial \alpha^2} & \frac{\partial^2\ell}{\partial\alpha\partial\beta} \\ \frac{\partial^2\ell}{\partial\beta\partial\alpha}& \frac{\partial^2\ell}{\partial\beta^2} \end{pmatrix} = \begin{pmatrix} n\psi'(\alpha) & \frac{n}{\beta} \\ \frac{n}{\beta} & \frac{n\alpha}{\beta^2} \end{pmatrix}
+\mathcal{I}_n(\alpha, \beta) = - E\begin{pmatrix} \frac{\partial^2\ell}{\partial \alpha^2} & \frac{\partial^2\ell}{\partial\alpha\partial\beta} \\ \frac{\partial^2\ell}{\partial\beta\partial\alpha}& \frac{\partial^2\ell}{\partial\beta^2} \end{pmatrix} = -\begin{pmatrix} n\psi'(\alpha) & \frac{n}{\beta} \\ \frac{n}{\beta} & \frac{n\alpha}{\beta^2} \end{pmatrix}
 $$
 
 
@@ -562,7 +688,7 @@ We first load the data into R and then follow the steps above to perform the thr
 ```{r}
 time2event <- read.table("https://pengdsci.github.io/STA506/w11/Time2Catastrophe.txt")
 colnames(time2event) <- "time"
-x <- time2event
+x <- time2event$time
 ```
 
 **Loglikelihood function** 
@@ -575,8 +701,12 @@ log_likelihood <- function(param) {
   alpha <- param[1] 
   beta <- param[2]
   n <- length(x)
-  return(n * alpha * log(beta) - n * log(gamma(alpha)) + 
-         (alpha - 1) * sum(log(x)) - beta * sum(x))
+  sum_x <- sum(x)
+  sum_logx <- sum(log(x))
+  ##
+  ll <- n * alpha * log(beta) - n * log(gamma(alpha)) + 
+         (alpha - 1) * sum_logx - beta * sum(x)
+  ll
 }
 ```
 
@@ -587,8 +717,13 @@ log_likelihood <- function(param) {
 score_equ <-function(par){
     alpha <- par[1]
     beta <- par[2]
-    score_alpha <- n * log(beta) - n * digamma(alpha) + sum(log(x))
-    score_beta <- n * alpha / beta - sum(x)
+    ##
+    n <- length(x)
+    sum_x <- sum(x)
+    sum_logx <- sum(log(x))
+    ##
+    score_alpha <- n * log(beta) - n * digamma(alpha) + sum_logx
+    score_beta <- n * alpha / beta - sum_x
     c(score_alpha, score_beta)
   }
 ```
@@ -624,10 +759,13 @@ Instead of relying on special built-in R functions that compute maximum likeliho
 
 
 ```{r}
- x <- time2event
+ x <- time2event$time
  n = length(x)
+ # initial values
+###
  result <- optim(
-          par = c(1,1),             # need to provide initial values to start the iteration.
+          par = c(100,0.1), 
+          #need to provide initial values to start the iteration.
                                     # Choosing appropriate initial values is critical.
           fn = log_likelihood,      # Caution: need negative log-likelihood
           gr = score_equ,           # also nee negative score
@@ -719,7 +857,7 @@ $$
 The R code that evaluates the above test statistic is given by
 
 ```{r}
- x <- time2event
+ x <- time2event$time
  n = length(x)
  ##
  LR = -2*(loglik(result0$par) - log_likelihood(result$par))
@@ -753,7 +891,7 @@ Next, we define the test statistic and calculate the p-value using the following
 ```{r}
 alpha.hat  <- result$par[1]     # based on the unrestricted likelihood estimation
 se.alpha <- sqrt(varcov[1, 1])  # the square root of the top-left diagonal value
-W <- (alpha.hat - 1)^2/se.alpha^2   # Wald test statistic
+W <- (alpha.hat - 1)^2/(se.alpha)^2   # Wald test statistic
 ##
 pval.W <- 1 - pchisq(W, df = 1)
 pval.W
