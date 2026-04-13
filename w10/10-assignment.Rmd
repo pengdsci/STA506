@@ -170,7 +170,7 @@ knitr::opts_chunk$set(echo = TRUE,       # include code chunk in the output file
 <p>
 * Enhance understanding the logic and procedure of hypothesis testing .
 
-* Implement the procedures for power and sample size calculation for basic hypothesis testing procedures using nuilt-in function and manual calculation.
+* Implement the procedures for power and sample size calculation for basic hypothesis testing procedures using built-in function and manual calculation.
 </p>
 
 
@@ -185,7 +185,7 @@ knitr::opts_chunk$set(echo = TRUE,       # include code chunk in the output file
 </p>
 
 
-## **Simple versus Composite Hypothesis*
+## **Simple versus Composite Hypothesis**
 
 **Simple Hypothesis**
 
