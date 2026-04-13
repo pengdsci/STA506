@@ -240,7 +240,7 @@ b). Find the MLE of the exponential parameter $\lambda$ (scale), denoted by $\ha
 c). Perform the likelihood ratio $\chi^2$ test on $\beta = 1$. What is the p-value? [*Hint: Use the results in a) and b)*.] 
 
 
-d). Perform the Wald $\chi^2$ on the same hypothesis $\beta = 1$. What is the p-value? [*Hint: You need to find the observed Fisher information matrix (i.e., the negative Hessian matrix from `optim()`) based on the Weibull distribution. The inverse of the observed Hessian matrix is the covariance matrix*.] 
+d). Perform the Wald $\chi^2$ on the same hypothesis $\beta = 1$. What is the p-value? [*Hint: You need to find the observed Fisher information matrix (i.e., the negative Hessian matrix from `optim()`) based on the Weibull distribution. The inverse of the <font color = "blue">negative</font> observed Hessian matrix is the covariance matrix*.] 
 
 e). Write a summary of the above analyses to address the following:
 
