@@ -643,28 +643,28 @@ The conditional independence assumption is often false in practice, but Naive Ba
 
 **Training data**:
 
-Vocabulary: \{"buy", "cheap", "meeting", "free"\}
+Vocabulary: $\{\text{buy}, \text{cheap}, \text{meeting}, \text{free}\}$
 
 Suppose in spam emails:
 
-$P(\text{"buy"}|S) = 0.3$,$P(\text{"cheap"}|S) = 0.2$,$P(\text{"meeting"}|S) = 0.01$,$P(\text{"free"}|S) = 0.4$
+$P(\text{buy}|S) = 0.3$,$P(\text{cheap}|S) = 0.2$,$P(\text{meeting}|S) = 0.01$,$P(\text{free}|S) = 0.4$
 
 In ham emails:\\
 
-$P(\text{"buy"}|H) = 0.01$,$P(\text{"cheap"}|H) = 0.01$,$P(\text{"meeting"}|H) = 0.2$,$P(\text{"free"}|H) = 0.05$
+$P(\text{buy}|H) = 0.01$,$P(\text{cheap}|H) = 0.01$,$P(\text{meeting}|H) = 0.2$,$P(\text{free}|H) = 0.05$
 
 Prior:$P(S) = 0.4$,$P(H) = 0.6$.
 
-New email: ``buy cheap meeting'' (ignore other words).
+New email: "buy cheap meeting" (ignore other words).
 
 We compute:
 
 $$
-P(S|\text{"buy","cheap","meeting"}) \propto 0.4 \times (0.3 \times 0.2 \times 0.01) = 0.4 \times 0.0006 = 0.00024
+P(S|\text{buy, cheap, meeting}) \propto 0.4 \times (0.3 \times 0.2 \times 0.01) = 0.4 \times 0.0006 = 0.00024
 $$
 
 $$
-P(H|\text{"buy","cheap","meeting"}) \propto 0.6 \times (0.01 \times 0.01 \times 0.2) = 0.6 \times 0.00002 = 0.000012
+P(H|\text{buy, cheap, meeting}) \propto 0.6 \times (0.01 \times 0.01 \times 0.2) = 0.6 \times 0.00002 = 0.000012
 $$
 
 Since$0.00024 > 0.000012$, classify as SPAM}.
@@ -681,7 +681,9 @@ Since$0.00024 > 0.000012$, classify as SPAM}.
 # Summary
 
 * **Bayes’ Rule**: Foundation for updating beliefs with evidence.
+
 * **Variants**: Events $\rightarrow$ discrete random variables $\rightarrow$ continuous random variables (parameter estimation).
+
 * **Naive Bayes**: Simple, fast classification using conditional independence assumption; widely used in text analysis and beyond.
 
 
@@ -717,6 +719,7 @@ p(\theta \mid y) = \frac{ p(y \mid \theta) \cdot p(\theta)}{p(y)}.
 $$
 
 To make $p(\theta \mid y)$ a valid density, i.e., $\int p(\theta | y) = 1$, equivalently,
+
 
 $$
 p(y) = \int_{-\infty}^{\infty} p(y\mid \theta) p(\theta)d\theta.
