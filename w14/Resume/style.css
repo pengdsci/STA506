@@ -1,0 +1,40 @@
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+}
+
+/* Header & Footer */
+header, footer {
+    background-color: #291940;
+    color: white;   /*font color*/
+    text-align: center;
+    padding: 10px;
+}
+
+/* Layout Container */
+.container {
+    display: flex;
+    height: 80vh;
+}
+
+/* Sidebar */
+.sidebar {
+    width: 20%;
+    background-color: #6E3061;
+    color: white;
+    padding: 15px;
+}
+
+/* Main Content */
+.content {
+    width: 60%;
+    padding: 20px;
+    background-color: #f9f9f9;
+}
+
+/* Right Panel */
+.panel {
+    width: 20%;
+    background-color: #ddd;
+    padding: 15px;
+}

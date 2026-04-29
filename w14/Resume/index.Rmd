@@ -1,0 +1,775 @@
+---
+title: "HTML, CSS, and Multi-Panel Web Pages"
+author: "Cheng Peng"
+date: "West Chester University"
+output:
+  html_document: 
+    toc: yes
+    toc_depth: 4
+    toc_float: true
+    number_sections: yes
+    toc_collapsed: yes
+    code_folding: show
+    code_download: yes
+    smooth_scroll: yes
+    theme: lumen
+  pdf_document: 
+    toc: yes
+    toc_depth: 4
+    fig_caption: yes
+    number_sections: yes
+    fig_width: 3
+    fig_height: 3
+  word_document: 
+    toc: yes
+    toc_depth: 4
+    fig_caption: yes
+    keep_md: yes
+editor_options: 
+  chunk_output_type: inline
+---
+
+```{css, echo = FALSE}
+
+/* Style for the toggle button */
+#toc-toggle {
+  position: fixed;
+  top: 50px;
+  right: 40px;
+  z-index: 1000;
+  padding: 1px 1px;
+  background-color: #f8f9fa;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+  color: darkred
+}
+
+/* When TOC is hidden */
+.toc-hidden #TOC {
+  display: none;
+}
+
+/* Adjust main content when TOC is hidden */
+.toc-hidden .main-container {
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+}
+
+/* Smooth transition */
+#TOC, .main-container {
+  transition: all 0.3s ease;
+}
+
+
+#TOC::before {
+  content: "Table of Contents";
+  font-weight: bold;
+  font-size: 1.2em;
+  display: block;
+  color: navy;
+  margin-bottom: 10px;
+}
+
+
+div#TOC li {     /* table of content  */
+    list-style:upper-roman;
+    background-image:none;
+    background-repeat:none;
+    background-position:0;
+}
+
+h1.title {    /* level 1 header of title  */
+  font-size: 22px;
+  font-weight: bold;
+  color: DarkRed;
+  text-align: center;
+  font-family: "Gill Sans", sans-serif;
+}
+
+h4.author { /* Header 4 - and the author and data headers use this too  */
+  font-size: 15px;
+  font-weight: bold;
+  font-family: system-ui;
+  color: navy;
+  text-align: center;
+}
+
+h4.date { /* Header 4 - and the author and data headers use this too  */
+  font-size: 18px;
+  font-weight: bold;
+  font-family: "Gill Sans", sans-serif;
+  color: DarkBlue;
+  text-align: center;
+}
+
+h1 { /* Header 1 - and the author and data headers use this too  */
+    font-size: 20px;
+    font-weight: bold;
+    font-family: "Times New Roman", Times, serif;
+    color: darkred;
+    text-align: center;
+}
+
+h2 { /* Header 2 - and the author and data headers use this too  */
+    font-size: 18px;
+    font-weight: bold;
+    font-family: "Times New Roman", Times, serif;
+    color: navy;
+    text-align: left;
+}
+
+h3 { /* Header 3 - and the author and data headers use this too  */
+    font-size: 16px;
+    font-weight: bold;
+    font-family: "Times New Roman", Times, serif;
+    color: navy;
+    text-align: left;
+}
+
+h4 { /* Header 4 - and the author and data headers use this too  */
+    font-size: 14px;
+  font-weight: bold;
+    font-family: "Times New Roman", Times, serif;
+    color: darkred;
+    text-align: left;
+}
+
+/* Add dots after numbered headers */
+.header-section-number::after {
+  content: ".";
+
+body {background-color: #ffffff;
+      color: #000000;
+      font-family: Arial, sans-serif;
+      font-size: 1rem;
+      line-height: 1.6;
+      }
+
+.highlightme { background-color:yellow; }
+
+p { background-color:white; }
+
+}
+```
+
+
+```{r setup, include=FALSE}
+# code chunk specifies whether the R code, warnings, and output 
+# will be included in the output files.
+if (!require("knitr")) {
+   install.packages("knitr")
+   library(knitr)
+}
+
+## library(Hmisc)
+knitr::opts_chunk$set(echo = TRUE,       # include code chunk in the output file
+                      warning = FALSE,   # sometimes, you code may produce warning messages,
+                                         # you can choose to include the warning messages in
+                                         # the output file. 
+                      results = TRUE,    # you can also decide whether to include the output
+                                         # in the output file.
+                      message = FALSE,
+                      comment = NA
+                      )  
+
+```
+
+\
+
+# Introduction
+
+These notes provide a comprehensive mathematical characterization of hypothesis testing, covering assumptions, procedures, types, performance measures, error types, and practical applications with manual calculations and R verification.
+
+# What is HTML? (Structure)
+
+HTML (HyperText Markup Language) defines the structure of a web page. It tells the browser what elements exist and how content is organized.
+
+
+**Basic HTML Skeleton**
+
+```{html}
+<!DOCTYPE html>  <!-- Tells the browser which HTML version to expect -->
+<html>
+<head>
+    <title>My First Web Page</title>
+</head>
+<body>
+    <h1>Welcome</h1>
+    <p>This is a paragraph.</p>
+</body>
+</html>
+```
+
+**Key Concepts**
+
+* `<html>`: Root element
+* `<head>`: Metadata (title, styles, links)
+* `<body>`: Visible content
+* Tags usually come in pairs: `<tag>...</tag>`
+
+
+# 2. Common HTML Elements
+
+**Text Elements**
+
+```{html}
+<h1>Main Heading</h1>
+<h2>Subheading</h2>
+<p>Paragraph text</p>
+```
+
+**Lists**
+
+```{html}
+<ul>
+  <li>Item 1</li>
+  <li>Item 2</li>
+</ul>
+```
+
+**Links and Images**
+
+```{html}
+<a href="https://example.com">Visit Site</a>
+<img src="image.jpg" alt="Description">
+```
+
+**Div and Section (Layout Containers)**
+
+```{html}
+<div>Generic container</div>
+<section>Semantic section</section>
+```
+
+
+# What is CSS? (Style)
+
+CSS (Cascading Style Sheets) controls the appearance of HTML elements.
+
+Basic CSS Syntax
+
+```{css}
+selector {
+    property: value;
+}
+```
+
+**Example**
+
+```{html}
+body {
+    background-color: #f4f4f4;
+}
+
+h1 {
+    color: purple;
+}
+```
+
+#  Ways to Add CSS
+
+**Inline**
+
+```{css}
+<p style="color: red;">Text</p>
+```
+
+**Internal**
+
+```{css}
+<style>
+p { color: blue; }
+</style>
+```
+
+
+**External (Best Practice)**
+
+```{css}
+<link rel="stylesheet" href="styles.css">
+```
+
+# Layout Basics: Building Panels
+
+To create multiple functional panels, we use CSS layout techniques like Flexbox or Grid.
+
+**Flexbox**
+
+* Enables horizontal or vertical layouts
+* Automatically adjusts spacing
+
+```{css}
+.container {
+    display: flex;
+}
+```
+
+**Box Model**
+
+Every element consists of:
+
+* Content
+* Padding
+* Border
+* Margin
+
+# Multi-Panel Web Page (Example)
+
+**HTML Structure**
+
+```{html}
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Multi-Panel Page</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header>
+    <h1>My Dashboard</h1>
+</header>
+
+<div class="container">
+    <nav class="sidebar">
+        <ul>
+            <li>Home</li>
+            <li>Profile</li>
+            <li>Settings</li>
+        </ul>
+    </nav>
+
+    <main class="content">
+        <h2>Main Content</h2>
+        <p>This is the central panel.</p>
+    </main>
+
+    <aside class="panel">
+        <h3>Extra Panel</h3>
+        <p>Additional info here.</p>
+    </aside>
+</div>
+
+<footer>
+    <p>Footer information</p>
+</footer>
+
+</body>
+</html>
+```
+
+Since the a code produces a standalone Webpage, we cannot include in this Markdown document.
+
+
+
+
+
+# HTML Tables
+
+## HTML Table With No CSS
+
+**Example** 3-by-3 with table different column width and some merged cells.
+
+```{html}
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Dashboard Table Layout</title>
+</head>
+<body>
+
+<table border="1" width="100%" height="600">
+
+    <!-- Header -->
+    <tr>
+        <td colspan="3" align="center">
+            <center><h2>My Dashboard</h2></center>
+        </td>
+    </tr>
+
+    <!-- Main Row -->
+    <tr>
+
+        <!-- Sidebar -->
+        <td width="20%" valign="top">
+            <ul>
+                <li>Home</li>
+                <li>Profile</li>
+                <li>Settings</li>
+            </ul>
+        </td>
+
+        <!-- Main Content -->
+        <td width="60%" valign="top">
+            <h3>Main Content</h3>
+            <p>This is the central panel.</p>
+        </td>
+
+        <!-- Extra Panel -->
+        <td width="20%" valign="top">
+            <h3>Extra Panel</h3>
+            <p>Additional info here.</p>
+        </td>
+
+    </tr>
+
+    <!-- Footer -->
+    <tr>
+        <td colspan="3" align="center">
+            Footer information
+        </td>
+    </tr>
+
+</table>
+
+</body>
+</html>
+```
+
+
+<table border="2" bordercolor= "red" width="80%" height="400">
+    <!-- Header -->
+    <tr>
+        <td  colspan = "3" align="center">
+            <h2><center>My Dashboard</center></h2>
+        </td>
+    </tr>
+    <!-- Main Row -->
+    <tr>
+        <!-- Sidebar -->
+        <td width="20%" valign="top">
+            <ul>
+                <li>Home</li>
+                <li>Profile</li>
+                <li>Settings</li>
+            </ul>
+        </td>
+        <!-- Main Content -->
+        <td width="60%" valign="top">
+            <h3>Main Content</h3>
+            <p>This is the central panel.</p>
+        </td>
+        <!-- Extra Panel -->
+        <td width="20%" valign="top">
+            <h3>Extra Panel</h3>
+            <p>Additional info here.</p>
+        </td>
+    </tr>
+    <!-- Footer -->
+    <tr>
+        <td colspan="3" align="center">
+            Footer information
+        </td>
+    </tr>
+</table>
+
+
+## HTML With Inline CSS
+
+```{html}
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Dashboard Table Layout</title>
+</head>
+<body style="margin:0; font-family: Arial, sans-serif;">
+
+<table style="width:100%; height:100vh; border-collapse:collapse;">
+
+    <!-- Header -->
+    <tr>
+        <td colspan="3" 
+            style="background-color:#2d1b3d; color:white; text-align:center; font-size:28px; font-weight:bold; height:80px;">
+            My Dashboard
+        </td>
+    </tr>
+
+    <!-- Main Row -->
+    <tr>
+
+        <!-- Sidebar -->
+        <td style="background-color:#6E3061; color:white; width:20%; vertical-align:top; padding:15px;">
+            <ul style="padding-left:20px;">
+                <li>Home</li>
+                <li>Profile</li>
+                <li>Settings</li>
+            </ul>
+        </td>
+
+        <!-- Main Content -->
+        <td style="background-color:#d3d3d3; width:60%; vertical-align:top; padding:15px;">
+            <h2>Main Content</h2>
+            <p>This is the central panel.</p>
+        </td>
+
+        <!-- Extra Panel -->
+        <td style="background-color:#bfbfbf; width:20%; vertical-align:top; padding:15px;">
+            <h3>Extra Panel</h3>
+            <p>Additional info here.</p>
+        </td>
+
+    </tr>
+
+    <!-- Footer -->
+    <tr>
+        <td colspan="3" 
+            style="background-color:#2d1b3d; color:white; text-align:center; height:50px;">
+            Footer information
+        </td>
+    </tr>
+
+</table>
+
+</body>
+</html>
+```
+
+<font color = "red">The actual HTML table is rendered as follows.</font>
+
+
+
+<table style="width:100%; height:100vh; border-collapse:collapse;">
+    <!-- Header -->
+    <tr>
+        <td colspan="3" 
+            style="background-color:#2d1b3d; color:white; text-align:center; font-size:28px; font-weight:bold; height:80px;">
+            My Dashboard
+        </td>
+    </tr>
+    <!-- Main Row -->
+    <tr>
+        <!-- Sidebar -->
+        <td style="background-color:#6E3061; color:white; width:20%; vertical-align:top; padding:15px;">
+            <ul style="padding-left:20px;">
+                <li>Home</li>
+                <li>Profile</li>
+                <li>Settings</li>
+            </ul>
+        </td>
+        <!-- Main Content -->
+        <td style="background-color:#d3d3d3; width:60%; vertical-align:top; padding:15px;">
+            <h2>Main Content</h2>
+            <p>This is the central panel.</p>
+        </td>
+        <!-- Extra Panel -->
+        <td style="background-color:#bfbfbf; width:20%; vertical-align:top; padding:15px;">
+            <h3>Extra Panel</h3>
+            <p>Additional info here.</p>
+        </td>
+    </tr>
+    <!-- Footer -->
+    <tr>
+        <td colspan="3" 
+            style="background-color:#2d1b3d; color:white; text-align:center; height:50px;">
+            Footer information
+        </td>
+    </tr>
+</table>
+
+
+## HTML Table with An Internal CSS
+
+```{html}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Dashboard Table Layout</title>
+<style>
+    body {
+        margin: 0;
+        font-family: Arial, sans-serif;
+    }
+
+    table {
+        width: 100%;
+        height: 100vh;
+        border-collapse: collapse;
+    }
+
+    td {
+        vertical-align: top;
+        padding: 15px;
+    }
+
+    /* Header */
+    .header {
+        background-color: #2d1b3d;
+        color: white;
+        text-align: center;
+        font-size: 28px;
+        font-weight: bold;
+        height: 80px;
+    }
+
+    /* Sidebar */
+    .sidebar {
+        background-color: #6E3061;
+        color: white;
+        width: 20%;
+    }
+
+    /* Main content */
+    .main {
+        background-color: #d3d3d3;
+        width: 60%;
+    }
+
+    /* Right panel */
+    .extra {
+        background-color: #bfbfbf;
+        width: 20%;
+    }
+
+    /* Footer */
+    .footer {
+        background-color: #2d1b3d;
+        color: white;
+        text-align: center;
+        height: 50px;
+    }
+
+    ul {
+        padding-left: 20px;
+    }
+</style>
+</head>
+<body>
+
+<table>
+    <!-- Header -->
+    <tr>
+        <td colspan="3" class="header">My Dashboard</td>
+    </tr>
+
+    <!-- Main Row -->
+    <tr>
+        <!-- Sidebar -->
+        <td class="sidebar">
+            <ul>
+                <li>Home</li>
+                <li>Profile</li>
+                <li>Settings</li>
+            </ul>
+        </td>
+
+        <!-- Main Content -->
+        <td class="main">
+            <h2>Main Content</h2>
+            <p>This is the central panel.</p>
+        </td>
+
+        <!-- Extra Panel -->
+        <td class="extra">
+            <h3>Extra Panel</h3>
+            <p>Additional info here.</p>
+        </td>
+    </tr>
+
+    <!-- Footer -->
+    <tr>
+        <td colspan="3" class="footer">Footer information</td>
+    </tr>
+</table>
+
+</body>
+</html>
+```
+
+```{css echo = FALSE}
+<style>
+    body {
+        margin: 0;
+        font-family: Arial, sans-serif;
+    }
+
+    table {
+        width: 100%;
+        height: 100vh;
+        border-collapse: collapse;
+    }
+
+    td {
+        vertical-align: top;
+        padding: 15px;
+    }
+
+    /* Header */
+    .header {
+        background-color: #2d1b3d;
+        color: white;
+        text-align: center;
+        font-size: 28px;
+        font-weight: bold;
+        height: 80px;
+    }
+
+    /* Sidebar */
+    .sidebar {
+        background-color: #6E3061;
+        color: white;
+        width: 20%;
+    }
+
+    /* Main content */
+    .main {
+        background-color: #d3d3d3;
+        width: 60%;
+    }
+
+    /* Right panel */
+    .extra {
+        background-color: #bfbfbf;
+        width: 20%;
+    }
+
+    /* Footer */
+    .footer {
+        background-color: #2d1b3d;
+        color: white;
+        text-align: center;
+        height: 50px;
+    }
+
+    ul {
+        padding-left: 20px;
+    }
+</style>
+```
+
+
+<table>
+    <!-- Header -->
+    <tr>
+        <td colspan="3" class="header">My Dashboard</td>
+    </tr>
+    <!-- Main Row -->
+    <tr>
+        <!-- Sidebar -->
+        <td class="sidebar">
+            <ul>
+                <li>Home</li>
+                <li>Profile</li>
+                <li>Settings</li>
+            </ul>
+        </td>
+        <!-- Main Content -->
+        <td class="main">
+            <h2>Main Content</h2>
+            <p>This is the central panel.</p>
+        </td>
+        <!-- Extra Panel -->
+        <td class="extra">
+            <h3>Extra Panel</h3>
+            <p>Additional info here.</p>
+        </td>
+    </tr>
+    <!-- Footer -->
+    <tr>
+        <td colspan="3" class="footer">Footer information</td>
+    </tr>
+</table>
+
+

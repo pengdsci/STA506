@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Your Name - CV / Resume</title>
+    
+    <style>
+        /* ---------------------------------------------------
+                              GLOBAL STYLES
+           This section controls the overall look of the page
+        --------------------------------------------------- */
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; /* Not all operating systems or browsers have the same fonts installed. If the browser cannot find your first choice (e.g., 'Segoe UI'), it will automatically move to the second (e.g., Tahoma), and so on.  */
+            line-height: 1.6;
+            color: #333;
+            background-color: #f5f5f5;
+            padding: 20px;
+        }
+        
+        /* Container - centers content and limits width */
+        .container {
+            max-width: 900px;  
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        /* ---------------------------------------------------
+           HEADER SECTION (Name, Title, Contact)
+        --------------------------------------------------- */
+        
+        .header {
+            background: linear-gradient(135deg, #2c3e50, #3498db);
+            color: white;
+            padding: 40px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 2.5rem;  /* The em is simply the font size, rem is the root em */
+            margin-bottom: 10px;
+        }
+        
+        .header .title {
+            font-size: 1.2rem;
+            opacity: 0.9;  /* opacity level */
+            margin-bottom: 15px;
+        }
+        
+        .contact-info {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 20px;
+            margin-top: 15px;
+        }
+        
+        .contact-info a {
+            color: white;
+            text-decoration: none;
+            opacity: 0.85;
+            transition: opacity 0.3s;
+        }
+        
+        .contact-info a:hover {
+            opacity: 1;
+        }
+        
+        /* ---------------------------------------------------
+           MAIN CONTENT (Experience, Education, Skills)
+        --------------------------------------------------- */
+        
+        .content {
+            padding: 40px;
+        }
+        
+        /* Section headings */
+        .section {
+            margin-bottom: 30px;
+        }
+        
+        .section h2 {
+            color: #2c3e50;
+            border-bottom: 3px solid #3498db;
+            padding-bottom: 8px;
+            margin-bottom: 20px;
+            font-size: 1.6rem;
+        }
+        
+        /* Experience and education entries */
+        .entry {
+            margin-bottom: 25px;
+        }
+        
+        .entry-header {
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            margin-bottom: 8px;
+        }
+        
+        .entry-title {
+            font-weight: bold;
+            font-size: 1.1rem;
+            color: #2c3e50;
+        }
+        
+        .entry-date {
+            color: #666;
+            font-style: italic;
+        }
+        
+        .entry-company {
+            color: #3498db;
+            font-weight: 500;
+            margin-bottom: 10px;
+        }
+        
+        .entry-description {
+            margin-left: 20px;
+            color: #555;
+        }
+        
+        /* Skills list */
+        .skills-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            list-style: none;
+        }
+        
+        .skills-list li {
+            background: #ecf0f1;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+        }
+        
+        /* Footer */
+        .footer {
+            background: #2c3e50;
+            color: #ecf0f1;
+            text-align: center;
+            padding: 20px;
+            font-size: 0.85rem;
+        }
+        
+        /* Responsive design for mobile */
+        @media (max-width: 600px) {
+            .header {
+                padding: 25px;
+            }
+            .content {
+                padding: 25px;
+            }
+            .entry-header {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    
+    <!-- ===================================================
+         HEADER SECTION
+         TODO: Replace with your name, title, and contact info
+    =================================================== -->
+    <div class="header">
+        <h1>Your Full Name</h1>
+        <div class="title">Statistician | Data Scientist | Educator</div>
+        <div class="contact-info">
+            <span>📧 your.email@example.com</span>
+            <span>📞 (123) 456-7890</span>
+            <span>📍 City, State</span>
+            <span>🔗 github.com/yourusername </span>
+        </div>
+    </div>
+    
+    <!-- ===================================================
+         MAIN CONTENT
+    =================================================== -->
+    <div class="content">
+        
+        <!-- Professional Summary -->
+        <div class="section">
+            <h2>Professional Summary</h2>
+            <p>Statistician and data scientist with expertise in statistical inference, machine learning, and data visualization. Experienced in teaching applied statistics and developing computational curricula. Passionate about translating complex data into actionable insights.</p>
+        </div>
+        
+        <!-- Education -->
+        <div class="section">
+            <h2>Education</h2>
+            
+            <div class="entry">
+                <div class="entry-header">
+                    <span class="entry-title">M.S. in Statistics</span>
+                    <span class="entry-date">2020 – 2022</span>
+                </div>
+                <div class="entry-company">University Name</div>
+                <div class="entry-description">
+                    Dissertation: "Topic of Your Research"
+                </div>
+            </div>
+            
+            <div class="entry">
+                <div class="entry-header">
+                    <span class="entry-title">B.S. in Mathematics</span>
+                    <span class="entry-date">2018 – 2020</span>
+                </div>
+                <div class="entry-company">University Name</div>
+            </div>
+        </div>
+        
+        <!-- Teaching Experience -->
+        <div class="section">
+            <h2>Teaching Experience</h2>
+            
+            <div class="entry">
+                <div class="entry-header">
+                    <span class="entry-title">Instructor, STA 333 – Statistical Computing</span>
+                    <span class="entry-date">Fall 2022</span>
+                </div>
+                <div class="entry-company">West Chester University</div>
+                <div class="entry-description">
+                    Developed complete lecture notes, problem sets, and a comprehensive course webpage. Emphasized computational methods and numerical analysis.
+                </div>
+            </div>
+            
+            <div class="entry">
+                <div class="entry-header">
+                    <span class="entry-title">Teaching Assistant, STA 301 – Applied Statistics</span>
+                    <span class="entry-date">2021 – 2022</span>
+                </div>
+                <div class="entry-company">University Name</div>
+                <div class="entry-description">
+                    Led lab sessions, graded assignments, and held office hours for 80+ students.
+                </div>
+            </div>
+        </div>
+        
+        <!-- Technical Skills -->
+        <div class="section">
+            <h2>Technical Skills</h2>
+            <ul class="skills-list">
+                <li>R / tidyverse</li>
+                <li>Python / pandas / scikit-learn</li>
+                <li>SQL</li>
+                <li>HTML / CSS</li>
+                <li>Git / GitHub</li>
+                <li>Statistical Modeling</li>
+                <li>Machine Learning</li>
+                <li>Data Visualization</li>
+            </ul>
+        </div>
+        
+        <!-- Selected Publications / Projects -->
+        <div class="section">
+            <h2>Selected Projects</h2>
+            
+            <div class="entry">
+                <div class="entry-header">
+                    <span class="entry-title">Interactive Data Visualization Dashboard</span>
+                    <span class="entry-date">2021</span>
+                </div>
+                <div class="entry-description">
+                    Built an interactive Shiny dashboard for exploring public health data.
+                </div>
+            </div>
+            
+            <div class="entry">
+                <div class="entry-header">
+                    <span class="entry-title">STA 206 Course Website</span>
+                    <span class="entry-date">2022</span>
+                </div>
+                <div class="entry-description">
+                    Designed and deployed a comprehensive course webpage with lecture notes, problem sets, and computational labs.
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- ===================================================
+         FOOTER
+    =================================================== -->
+    <div class="footer">
+        © 2026 Your Name | Last updated: April 2026
+    </div>
+</div>
+
+</body>
+</html>
